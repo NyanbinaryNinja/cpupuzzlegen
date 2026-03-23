@@ -6,6 +6,15 @@ body{background:#00243a;color:#0f4;display:flex;flex-direction:column;align-item
 canvas{margin-top:20px;box-shadow:0 0 20px #0f43;max-width:100%;height:auto}
 #cipher_type{position:absolute;top:20px;left:20px}
 
+label, #cipher_type, #theme_sel, #c_pick {
+  color: initial !important;
+}
+
+input[type="checkbox"] {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  -moz-appearance: checkbox;
+}
 </style>
 
 <script src="js/general/input_filter.js"></script>
@@ -41,12 +50,12 @@ canvas{margin-top:20px;box-shadow:0 0 20px #0f43;max-width:100%;height:auto}
   <input type="color" id="c_pick" value="#00ff44" style="display:none;height:22px;padding:0;border:none;">
 </div>
 <div style="position:absolute;top:60px;right:20px;display:flex;flex-direction:column;align-items:flex-end;">
-  <div id="opt_poly" style="display:none;"><label class="field-border"><input type="checkbox" id="poly_num_cb" onchange="generate_grid()" checked> Show Numbers</label></div>
-  <div id="opt_radar" style="display:none;"><label class="field-border"><input type="checkbox" id="radar_clock_cb" onchange="generate_grid()" checked> Show Clock Guide</label></div>
+  <div id="opt_poly" style="display:none;"><label style="color: initial !important;"><input type="checkbox" class="field-border" id="poly_num_cb" onchange="generate_grid()" checked> Show Numbers</label></div>
+  <div id="opt_radar" style="display:none;"><label style="color: initial !important;"><input type="checkbox" class="field-border" id="radar_clock_cb" onchange="generate_grid()" checked> Show Clock Guide</label></div>
 </div>
 <div><input id="input_box" value="" placeholder=""></div>
 <div style="margin-top:10px;">
-  <label class="field-border" style="margin-right:15px;"><input type="checkbox" id="split_cb"> Split Key & Grid</label>
+  <label style="color: initial !important; margin-right:15px;"><input type="checkbox" class="field-border" id="split_cb"> Split Key & Grid</label>
   <button onclick="generate_grid()">Generate Grid</button>
   <button id="rec_btn" onclick="start_recording()">Record File</button>
 </div>
