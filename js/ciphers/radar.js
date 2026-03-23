@@ -8,10 +8,11 @@ class radar_cipher {
   }
 
   generate(input_val) {
-    let filter_data = input_filter.get_filtered_chars(input_val, 26);
-    let random_leftovers = filter_data.leftovers.sort(() => Math.random() - 0.5).slice(0, 26 - filter_data.unique_chars.length);
+    let filter_data = input_filter.get_filtered_chars(input_val);
+    let pool_size = Math.max(12, filter_data.unique_chars.length);
+    let random_leftovers = filter_data.leftovers.sort(() => Math.random() - 0.5).slice(0, pool_size - filter_data.unique_chars.length);
     this.char_pool = [...filter_data.unique_chars, ...random_leftovers].sort(() => Math.random() - 0.5);
-    this.cipher_coords = filter_data.clean_val.split('').filter(c => this.char_pool.includes(c)).map(char => this.char_pool.indexOf(char));
+    this.cipher_coords = filter_data.clean_val.split('').map(char => this.char_pool.indexOf(char));
     let cols = 8;
     let rows = Math.max(1, Math.ceil(this.cipher_coords.length / cols));
     this.split_y = Math.floor(40 + rows * 60 + 20);
@@ -27,15 +28,17 @@ class radar_cipher {
     let r_small = 20;
     let spacing = 60;
     let cols = 8;
-    let start_x = 60;
-    let start_y = 60;
+    let pool_len = this.char_pool.length;
     for (let j = 0; j < this.cipher_coords.length; j++) {
-      let col = j % cols;
       let row = Math.floor(j / cols);
+      let items_in_row = Math.min(cols, this.cipher_coords.length - row * cols);
+      let row_width = (items_in_row - 1) * spacing;
+      let start_x = (this.canvas_el.width - row_width) / 2;
+      let col = j % cols;
       let cx = start_x + col * spacing;
-      let cy = start_y + row * spacing;
+      let cy = 70 + row * spacing;
       let idx = this.cipher_coords[j];
-      let angle = (idx / 26) * Math.PI * 2 - Math.PI / 2;
+      let angle = (idx / pool_len) * Math.PI * 2 - Math.PI / 2;
       this.ctx.beginPath();
       this.ctx.arc(cx, cy, r_small, 0, Math.PI * 2);
       this.ctx.stroke();
@@ -48,7 +51,7 @@ class radar_cipher {
       this.ctx.arc(cx, cy, 3, 0, Math.PI * 2);
       this.ctx.fill();
     }
-    let key_cy = this.split_y + 140;
+    let key_cy = this.split_y + 150;
     let key_cx = this.canvas_el.width / 2;
     let r_large = 100;
     this.ctx.strokeStyle = colors.c_drk;
@@ -57,8 +60,8 @@ class radar_cipher {
     this.ctx.stroke();
     this.ctx.fillStyle = colors.c_main;
     this.ctx.font = 'bold 18px monospace';
-    for (let i = 0; i < 26; i++) {
-      let angle = (i / 26) * Math.PI * 2 - Math.PI / 2;
+    for (let i = 0; i < pool_len; i++) {
+      let angle = (i / pool_len) * Math.PI * 2 - Math.PI / 2;
       let tx = key_cx + Math.cos(angle) * (r_large + 24);
       let ty = key_cy + Math.sin(angle) * (r_large + 24);
       let inner_x = key_cx + Math.cos(angle) * r_large;
