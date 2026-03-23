@@ -12,9 +12,10 @@ class pigpen_cipher {
     let random_leftovers = filter_data.leftovers.sort(() => Math.random() - 0.5).slice(0, 26 - filter_data.unique_chars.length);
     this.char_pool = [...filter_data.unique_chars, ...random_leftovers].sort(() => Math.random() - 0.5);
     this.cipher_coords = filter_data.clean_val.split('').filter(c => this.char_pool.includes(c)).map(char => this.char_pool.indexOf(char));
-    this.split_y = 60 + Math.ceil(this.cipher_coords.length / 8) * 40;
-    this.canvas_el.width = 310;
-    this.canvas_el.height = 340 + Math.ceil(this.cipher_coords.length / 8) * 40;
+    let rows = Math.max(1, Math.ceil(this.cipher_coords.length / 8));
+    this.split_y = 40 + (rows - 1) * 45 + 50;
+    this.canvas_el.width = 340;
+    this.canvas_el.height = this.split_y + 360;
   }
 
   draw(colors) {
@@ -23,7 +24,7 @@ class pigpen_cipher {
     this.ctx.fillStyle = colors.c_main;
     this.ctx.lineWidth = 2;
     for (let j = 0; j < this.cipher_coords.length; j++) {
-      let sx = 40 + (j % 8) * 32, sy = 50 + Math.floor(j / 8) * 40, i = this.cipher_coords[j], d = 12;
+      let sx = 44 + (j % 8) * 36, sy = 40 + Math.floor(j / 8) * 45, i = this.cipher_coords[j], d = 12;
       this.ctx.beginPath();
       if (i < 18) {
         let r = Math.floor((i % 9) / 3), c = (i % 9) % 3;
@@ -46,18 +47,18 @@ class pigpen_cipher {
       }
       this.ctx.stroke();
     }
-    let start_y = this.split_y;
+    let start_y = this.split_y + 40;
     this.ctx.strokeStyle = colors.c_drk;
     this.ctx.beginPath();
-    [80, 230].forEach(gx => {
-      let gy = start_y + 60;
+    [95, 245].forEach(gx => {
+      let gy = start_y + 100;
       this.ctx.moveTo(gx - 25, gy - 75); this.ctx.lineTo(gx - 25, gy + 75);
       this.ctx.moveTo(gx + 25, gy - 75); this.ctx.lineTo(gx + 25, gy + 75);
       this.ctx.moveTo(gx - 75, gy - 25); this.ctx.lineTo(gx + 75, gy - 25);
       this.ctx.moveTo(gx - 75, gy + 25); this.ctx.lineTo(gx + 75, gy + 25);
     });
-    [80, 230].forEach(gx => {
-      let gy = start_y + 210;
+    [95, 245].forEach(gx => {
+      let gy = start_y + 250;
       this.ctx.moveTo(gx - 50, gy - 50); this.ctx.lineTo(gx + 50, gy + 50);
       this.ctx.moveTo(gx - 50, gy + 50); this.ctx.lineTo(gx + 50, gy - 50);
     });
@@ -66,11 +67,11 @@ class pigpen_cipher {
     for (let i = 0; i < 26; i++) {
       let cx, cy, dt = false, dx, dy;
       if (i < 18) {
-        let gx = 80 + (i > 8 ? 150 : 0), gy = start_y + 60, p = i % 9;
+        let gx = 95 + (i > 8 ? 150 : 0), gy = start_y + 100, p = i % 9;
         cx = gx + (p % 3) * 50 - 50; cy = gy + Math.floor(p / 3) * 50 - 50;
         if (i > 8) { dt = true; dx = cx + (p % 3 === 0 ? 15 : p % 3 === 2 ? -15 : 0); dy = cy + (Math.floor(p / 3) === 0 ? 15 : Math.floor(p / 3) === 2 ? -15 : (p === 4 ? 15 : 0)); }
       } else {
-        let gx = 80 + (i > 21 ? 150 : 0), gy = start_y + 210, p = (i - 18) % 4;
+        let gx = 95 + (i > 21 ? 150 : 0), gy = start_y + 250, p = (i - 18) % 4;
         cx = gx + (p === 1 ? 30 : p === 3 ? -30 : 0); cy = gy + (p === 0 ? -30 : p === 2 ? 30 : 0);
         if (i > 21) { dt = true; dx = gx + (p === 1 ? 10 : p === 3 ? -10 : 0); dy = gy + (p === 0 ? -10 : p === 2 ? 10 : 0); }
       }
