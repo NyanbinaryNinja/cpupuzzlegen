@@ -13,9 +13,15 @@ class pigpen_cipher {
     this.char_pool = [...filter_data.unique_chars, ...random_leftovers].sort(() => Math.random() - 0.5);
     this.cipher_coords = filter_data.clean_val.split('').filter(c => this.char_pool.includes(c)).map(char => this.char_pool.indexOf(char));
     let rows = Math.max(1, Math.ceil(this.cipher_coords.length / 8));
+<<<<<<< HEAD
     this.split_y = 40 + (rows - 1) * 45 + 50;
     this.canvas_el.width = 340;
     this.canvas_el.height = this.split_y + 360;
+=======
+    this.split_y = 40 + rows * 45 + 15;
+    this.canvas_el.width = 340;
+    this.canvas_el.height = this.split_y + 320;
+>>>>>>> d210e7ce0b687fc099356d50fdb4708db823ba9e
   }
 
   draw(colors) {
