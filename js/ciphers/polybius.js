@@ -6,7 +6,7 @@ class polybius_cipher {
     this.char_pool = [];
     this.cipher_coords = [];
   }
-
+ 
   generate(input_val) {
     let filter_data = input_filter.get_filtered_chars(input_val);
     this.grid_size = Math.max(5, Math.ceil(Math.sqrt(filter_data.unique_chars.length)));

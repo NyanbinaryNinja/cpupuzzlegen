@@ -80,6 +80,7 @@ class pigpen_cipher {
         cx = gx + (p === 1 ? 30 : p === 3 ? -30 : 0); cy = gy + (p === 0 ? -30 : p === 2 ? 30 : 0);
         if (i > 21) { dt = true; dx = gx + (p === 1 ? 10 : p === 3 ? -10 : 0); dy = gy + (p === 0 ? -10 : p === 2 ? 10 : 0); }
       }
+      
       this.ctx.fillStyle = colors.c_main;
       this.ctx.fillText(this.char_pool[i], cx, cy + 8);
       if (dt) this.ctx.fillRect(dx - 2, dy - 2, 4, 4);
