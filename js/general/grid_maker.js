@@ -17,15 +17,12 @@ class grid_maker {
   draw_scanline(colors) {
     this.ctx.fillStyle = colors.c_a2;
     this.ctx.fillRect(0, this.scan_y, this.canvas_el.width, 5);
-    
     this.scan_y += 2;
     let reset_happened = false;
-    
     if (this.scan_y >= this.canvas_el.height) {
       this.scan_y = 0;
       reset_happened = true;
     }
-    
     return reset_happened;
   }
 }

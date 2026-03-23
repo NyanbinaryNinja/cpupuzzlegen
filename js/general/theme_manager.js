@@ -2,13 +2,11 @@ class theme_manager {
   static get_theme(theme_id, custom_hex, canvas_el, ctx) {
     let c_main, c_a1, c_a2, c_sec = '#0ff', c_drk, c_lgt;
     let hex = '#00ff44';
-
     if (theme_id === '1') hex = '#00ff44';
     if (theme_id === '2') { hex = '#ffd700'; c_sec = '#00ffff'; }
     if (theme_id === '3') { hex = '#cc0000'; c_sec = '#ffaaaa'; }
     if (theme_id === '4') { hex = '#00ffff'; c_sec = '#ff00ff'; }
     if (theme_id === '6') hex = custom_hex;
-
     if (theme_id === '5') {
       let grad = ctx.createLinearGradient(0, 0, canvas_el.width, canvas_el.height);
       grad.addColorStop(0, '#ff0000');
@@ -38,7 +36,6 @@ class theme_manager {
       document.body.style.color = c_main;
       canvas_el.style.boxShadow = `0 0 20px rgba(${r},${g},${b},0.2)`;
     }
-
     return { c_main, c_a1, c_a2, c_sec, c_drk, c_lgt };
   }
 }

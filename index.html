@@ -9,11 +9,13 @@ canvas{margin-top:20px;box-shadow:0 0 20px #0f43;max-width:100%;height:auto}
 
 <script src="js/general/input_filter.js"></script>
 <script src="js/general/theme_manager.js"></script>
-<script src="js/general/media_recorder.js"></script>
+<script src="js/general/gif_generator.js"></script>
 <script src="js/general/grid_maker.js"></script>
 
 <script src="js/ciphers/polybius.js"></script>
 <script src="js/ciphers/pigpen.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/gif.js/dist/gif.js"></script>
 
 <script src="js/app.js" defer></script>
 
@@ -35,7 +37,8 @@ canvas{margin-top:20px;box-shadow:0 0 20px #0f43;max-width:100%;height:auto}
   <input type="color" id="c_pick" value="#00ff44" style="display:none;height:22px;padding:0;border:none;">
 </div>
 <div><input id="input_box" value="" placeholder=""></div>
-<div>
+<div style="margin-top:10px;">
+  <label style="margin-right:15px;"><input type="checkbox" id="split_cb"> Split Key & Grid</label>
   <button onclick="generate_grid()">Generate Grid</button>
   <button id="rec_btn" onclick="start_recording()">Record File</button>
 </div>
