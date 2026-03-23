@@ -9,7 +9,8 @@ const grid_manager = new grid_maker(canvas_el, ctx);
 
 const ciphers = {
   'poly': new polybius_cipher(canvas_el, ctx),
-  'pig': new pigpen_cipher(canvas_el, ctx)
+  'pig': new pigpen_cipher(canvas_el, ctx),
+  'radar': new radar_cipher(canvas_el, ctx)
 };
 
 let current_cipher = null;

@@ -14,6 +14,7 @@ canvas{margin-top:20px;box-shadow:0 0 20px #0f43;max-width:100%;height:auto}
 
 <script src="js/ciphers/polybius.js"></script>
 <script src="js/ciphers/pigpen.js"></script>
+<script src="js/ciphers/radar.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/gif.js/dist/gif.js"></script>
 
@@ -24,6 +25,7 @@ canvas{margin-top:20px;box-shadow:0 0 20px #0f43;max-width:100%;height:auto}
 <select id="cipher_type" onchange="generate_grid()">
   <option value="poly">Polybius Square</option>
   <option value="pig">Pigpen Cipher</option>
+  <option value="radar">Radar</option>
 </select>
 <div style="position:absolute;top:20px;right:20px;display:flex;gap:5px;">
   <select id="theme_sel" onchange="document.getElementById('c_pick').style.display=this.value=='6'?'inline-block':'none'">
