@@ -50,5 +50,4 @@ function draw_frame() {
   anim_frame = requestAnimationFrame(draw_frame);
 }
 
-// Initial initialization 
 window.generate_grid();
