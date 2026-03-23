@@ -39,6 +39,7 @@ class polybius_cipher {
     let grid_w = (this.grid_size - 1) * step + box;
     let offset_x = Math.floor((this.canvas_el.width - grid_w) / 2);
     let offset_y = start_y;
+    let show_nums = document.getElementById('poly_num_cb').checked;
     this.ctx.lineWidth = 2;
     for (let i = 0; i < this.grid_size * this.grid_size; i++) {
       let col_idx = i % this.grid_size;
@@ -47,8 +48,10 @@ class polybius_cipher {
       let pos_y = offset_y + row_idx * step;
       this.ctx.fillStyle = colors.c_sec;
       this.ctx.font = '14px monospace';
-      if (row_idx === 0) this.ctx.fillText(col_idx + 1, pos_x + box / 2, offset_y - 20);
-      if (col_idx === 0) this.ctx.fillText(row_idx + 1, offset_x - 20, pos_y + box / 2 + 5);
+      if (show_nums) {
+        if (row_idx === 0) this.ctx.fillText(col_idx + 1, pos_x + box / 2, offset_y - 20);
+        if (col_idx === 0) this.ctx.fillText(row_idx + 1, offset_x - 20, pos_y + box / 2 + 5);
+      }
       this.ctx.strokeStyle = colors.c_drk;
       this.ctx.beginPath();
       this.ctx.strokeRect(pos_x, pos_y, box, box);

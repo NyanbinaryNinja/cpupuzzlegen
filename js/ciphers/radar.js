@@ -16,7 +16,9 @@ class radar_cipher {
     this.cipher_coords = filter_data.clean_val.split('').map(char => this.char_pool.indexOf(char));
     let cols = 8;
     let rows = Math.max(1, Math.ceil(this.cipher_coords.length / cols));
-    this.split_y = Math.floor(180 + rows * 60 + 20);
+    let has_clock = document.getElementById('radar_clock_cb').checked;
+    let pad_top = has_clock ? 180 : 60;
+    this.split_y = Math.floor(pad_top + rows * 60 + 20);
     this.canvas_el.width = 60 + cols * 60;
     this.canvas_el.height = this.split_y + 420;
   }
@@ -28,33 +30,37 @@ class radar_cipher {
     this.ctx.textBaseline = 'middle';
     this.ctx.lineWidth = 2;
     let pool_len = this.char_pool.length;
-    let clock_cx = this.canvas_el.width / 2;
-    let clock_cy = 80;
-    let clock_r = 40;
-    this.ctx.strokeStyle = colors.c_drk;
-    this.ctx.beginPath();
-    this.ctx.arc(clock_cx, clock_cy, clock_r, 0, Math.PI * 2);
-    this.ctx.stroke();
-    this.ctx.fillStyle = colors.c_main;
-    this.ctx.font = 'bold 16px monospace';
-    this.ctx.strokeStyle = colors.c_main;
-    for (let i = 0; i < pool_len; i++) {
-      let angle = (i / pool_len) * Math.PI * 2 - Math.PI / 2;
-      let inner_x = clock_cx + Math.cos(angle) * (clock_r - 6);
-      let inner_y = clock_cy + Math.sin(angle) * (clock_r - 6);
-      let outer_x = clock_cx + Math.cos(angle) * clock_r;
-      let outer_y = clock_cy + Math.sin(angle) * clock_r;
+    let show_clock = document.getElementById('radar_clock_cb').checked;
+    if (show_clock) {
+      let clock_cx = this.canvas_el.width / 2;
+      let clock_cy = 80;
+      let clock_r = 40;
+      this.ctx.strokeStyle = colors.c_drk;
       this.ctx.beginPath();
-      this.ctx.moveTo(inner_x, inner_y);
-      this.ctx.lineTo(outer_x, outer_y);
+      this.ctx.arc(clock_cx, clock_cy, clock_r, 0, Math.PI * 2);
       this.ctx.stroke();
-      let tx = clock_cx + Math.cos(angle) * (clock_r + 18);
-      let ty = clock_cy + Math.sin(angle) * (clock_r + 18);
-      this.ctx.fillText(i + 1, tx, ty);
+      this.ctx.fillStyle = colors.c_main;
+      this.ctx.font = 'bold 16px monospace';
+      this.ctx.strokeStyle = colors.c_main;
+      for (let i = 0; i < pool_len; i++) {
+        let angle = (i / pool_len) * Math.PI * 2 - Math.PI / 2;
+        let inner_x = clock_cx + Math.cos(angle) * (clock_r - 6);
+        let inner_y = clock_cy + Math.sin(angle) * (clock_r - 6);
+        let outer_x = clock_cx + Math.cos(angle) * clock_r;
+        let outer_y = clock_cy + Math.sin(angle) * clock_r;
+        this.ctx.beginPath();
+        this.ctx.moveTo(inner_x, inner_y);
+        this.ctx.lineTo(outer_x, outer_y);
+        this.ctx.stroke();
+        let tx = clock_cx + Math.cos(angle) * (clock_r + 18);
+        let ty = clock_cy + Math.sin(angle) * (clock_r + 18);
+        this.ctx.fillText(i + 1, tx, ty);
+      }
     }
     let r_small = 20;
     let spacing = 60;
     let cols = 8;
+    let grid_start_y = show_clock ? 180 : 60;
     for (let j = 0; j < this.cipher_coords.length; j++) {
       let row = Math.floor(j / cols);
       let items_in_row = Math.min(cols, this.cipher_coords.length - row * cols);
@@ -62,7 +68,7 @@ class radar_cipher {
       let start_x = (this.canvas_el.width - row_width) / 2;
       let col = j % cols;
       let cx = start_x + col * spacing;
-      let cy = 180 + row * spacing;
+      let cy = grid_start_y + row * spacing;
       let idx = this.cipher_coords[j];
       let angle = (idx / pool_len) * Math.PI * 2 - Math.PI / 2;
       this.ctx.strokeStyle = colors.c_main;
