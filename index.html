@@ -5,6 +5,9 @@
 body{background:#000;color:#0f4;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;margin:0;min-height:100vh;padding:20px;box-sizing:border-box}
 canvas{margin-top:20px;box-shadow:0 0 20px #0f43;max-width:100%;height:auto}
 #cipher_type{position:absolute;top:20px;left:20px}
+label, #cipher_type, #theme_sel, #c_pick, input[type="checkbox"] + label, #opt_poly label, #opt_radar label {
+  color: initial !important;
+}
 </style>
 
 <script src="js/general/input_filter.js"></script>
@@ -16,6 +19,7 @@ canvas{margin-top:20px;box-shadow:0 0 20px #0f43;max-width:100%;height:auto}
 <script src="js/ciphers/pigpen.js"></script>
 <script src="js/ciphers/radar.js"></script>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/95css@latest/css/95css.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/gif.js/dist/gif.js"></script>
 
 <script src="js/app.js" defer></script>
