@@ -13,7 +13,7 @@ class pigpen_cipher {
     this.char_pool = [...filter_data.unique_chars, ...random_leftovers].sort(() => Math.random() - 0.5);
     this.cipher_coords = filter_data.clean_val.split('').filter(c => this.char_pool.includes(c)).map(char => this.char_pool.indexOf(char));
     let rows = Math.max(1, Math.ceil(this.cipher_coords.length / 8));
-    this.split_y = 40 + (rows - 1) * 45 + 50;
+    this.split_y = Math.floor(40 + (rows - 1) * 45 + 50);
     this.canvas_el.width = 340;
     this.canvas_el.height = this.split_y + 360;
   }
@@ -76,7 +76,7 @@ class pigpen_cipher {
         if (i > 21) { dt = true; dx = gx + (p === 1 ? 10 : p === 3 ? -10 : 0); dy = gy + (p === 0 ? -10 : p === 2 ? 10 : 0); }
       }
       this.ctx.fillStyle = colors.c_main;
-      this.ctx.fillText(this.char_pool[i], cx, cy + 8);
+      this.ctx.fillText(this.char_pool[i] || '', cx, cy + 8);
       if (dt) this.ctx.fillRect(dx - 2, dy - 2, 4, 4);
     }
   }

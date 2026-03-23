@@ -12,6 +12,7 @@ const ciphers = {
   'pig': new pigpen_cipher(canvas_el, ctx)
 };
 
+
 let current_cipher = null;
 let anim_frame = null;
 

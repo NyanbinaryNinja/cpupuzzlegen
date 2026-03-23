@@ -10,7 +10,7 @@ class polybius_cipher {
 
   generate(input_val) {
     let filter_data = input_filter.get_filtered_chars(input_val);
-    this.grid_size = Math.max(5, Math.ceil(Math.sqrt(filter_data.unique_chars.length)));
+    this.grid_size = Math.max(5, Math.ceil(Math.sqrt(filter_data.unique_chars.length || 1)));
     let pool_size = this.grid_size * this.grid_size;
     let random_leftovers = filter_data.leftovers.sort(() => Math.random() - 0.5).slice(0, pool_size - filter_data.unique_chars.length);
     this.char_pool = [...filter_data.unique_chars, ...random_leftovers].sort(() => Math.random() - 0.5);
@@ -19,7 +19,7 @@ class polybius_cipher {
       return `${Math.floor(idx / this.grid_size) + 1}${idx % this.grid_size + 1}`;
     });
     let rows = Math.max(1, Math.ceil(this.cipher_coords.length / this.grid_size));
-    this.split_y = 40 + (rows - 1) * 30 + 50;
+    this.split_y = Math.floor(40 + (rows - 1) * 30 + 50);
     let box = 50, step = 60;
     let grid_w = (this.grid_size - 1) * step + box;
     let grid_h = (this.grid_size - 1) * step + box;
@@ -37,8 +37,9 @@ class polybius_cipher {
     let start_y = this.split_y + 60;
     let box = 50, step = 60;
     let grid_w = (this.grid_size - 1) * step + box;
-    let offset_x = (this.canvas_el.width - grid_w) / 2;
+    let offset_x = Math.floor((this.canvas_el.width - grid_w) / 2);
     let offset_y = start_y;
+    this.ctx.lineWidth = 2;
     for (let i = 0; i < this.grid_size * this.grid_size; i++) {
       let col_idx = i % this.grid_size;
       let row_idx = Math.floor(i / this.grid_size);
@@ -49,10 +50,11 @@ class polybius_cipher {
       if (row_idx === 0) this.ctx.fillText(col_idx + 1, pos_x + box / 2, offset_y - 20);
       if (col_idx === 0) this.ctx.fillText(row_idx + 1, offset_x - 20, pos_y + box / 2 + 5);
       this.ctx.strokeStyle = colors.c_drk;
+      this.ctx.beginPath();
       this.ctx.strokeRect(pos_x, pos_y, box, box);
       this.ctx.fillStyle = colors.c_main;
       this.ctx.font = 'bold 24px monospace';
-      this.ctx.fillText(this.char_pool[i], pos_x + box / 2, pos_y + box / 2 + 8);
+      this.ctx.fillText(this.char_pool[i] || '', pos_x + box / 2, pos_y + box / 2 + 8);
     }
   }
 }
