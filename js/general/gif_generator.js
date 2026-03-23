@@ -20,8 +20,8 @@ class gif_generator {
     }
   }
 
-  check_start(scan_y) {
-    if (this.rec_state === 1 && scan_y === 0) {
+  check_start(scan_p) {
+    if (this.rec_state === 1 && scan_p === 0) {
       this.rec_state = 2;
     }
   }

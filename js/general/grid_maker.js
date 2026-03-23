@@ -2,7 +2,7 @@ class grid_maker {
   constructor(canvas_el, ctx) {
     this.canvas_el = canvas_el;
     this.ctx = ctx;
-    this.scan_y = 0;
+    this.scan_p = 0;
   }
 
   draw_background(colors) {
@@ -14,13 +14,18 @@ class grid_maker {
     }
   }
 
-  draw_scanline(colors) {
+  draw_scanline(colors, split_mode, split_y) {
     this.ctx.fillStyle = colors.c_a2;
-    this.ctx.fillRect(0, this.scan_y, this.canvas_el.width, 5);
-    this.scan_y += 2;
     let reset_happened = false;
-    if (this.scan_y >= this.canvas_el.height) {
-      this.scan_y = 0;
+    if (split_mode) {
+      this.ctx.fillRect(0, this.scan_p * split_y, this.canvas_el.width, 5);
+      this.ctx.fillRect(0, split_y + this.scan_p * (this.canvas_el.height - split_y), this.canvas_el.width, 5);
+    } else {
+      this.ctx.fillRect(0, this.scan_p * this.canvas_el.height, this.canvas_el.width, 5);
+    }
+    this.scan_p += 2 / this.canvas_el.height;
+    if (this.scan_p >= 1) {
+      this.scan_p = 0;
       reset_happened = true;
     }
     return reset_happened;

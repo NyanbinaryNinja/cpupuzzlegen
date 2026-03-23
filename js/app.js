@@ -12,7 +12,6 @@ const ciphers = {
   'pig': new pigpen_cipher(canvas_el, ctx)
 };
 
-
 let current_cipher = null;
 let anim_frame = null;
 
@@ -38,8 +37,8 @@ function draw_frame() {
   if (current_cipher) {
     current_cipher.draw(colors);
   }
-  recorder.check_start(grid_manager.scan_y);
-  let reset_happened = grid_manager.draw_scanline(colors);
+  recorder.check_start(grid_manager.scan_p);
+  let reset_happened = grid_manager.draw_scanline(colors, split_cb.checked, current_cipher ? current_cipher.split_y : 0);
   recorder.capture_frame();
   recorder.check_stop(reset_happened);
   anim_frame = requestAnimationFrame(draw_frame);
