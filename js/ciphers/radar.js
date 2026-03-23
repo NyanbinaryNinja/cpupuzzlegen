@@ -5,6 +5,7 @@ class radar_cipher {
     this.char_pool = [];
     this.cipher_coords = [];
     this.split_y = 0;
+    this.sweep_angle = 0;
   }
 
   generate(input_val) {
@@ -17,10 +18,12 @@ class radar_cipher {
     let rows = Math.max(1, Math.ceil(this.cipher_coords.length / cols));
     this.split_y = Math.floor(40 + rows * 60 + 20);
     this.canvas_el.width = 60 + cols * 60;
-    this.canvas_el.height = this.split_y + 300;
+    this.canvas_el.height = this.split_y + 780;
   }
 
   draw(colors) {
+    this.sweep_angle += 0.04;
+    if (this.sweep_angle > Math.PI * 2) this.sweep_angle -= Math.PI * 2;
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
     this.ctx.strokeStyle = colors.c_main;
@@ -51,9 +54,45 @@ class radar_cipher {
       this.ctx.arc(cx, cy, 3, 0, Math.PI * 2);
       this.ctx.fill();
     }
-    let key_cy = this.split_y + 150;
+    let clock_cy = this.split_y + 260;
+    let clock_cx = this.canvas_el.width / 2;
+    let clock_r = 200;
+    this.ctx.strokeStyle = colors.c_drk;
+    this.ctx.beginPath();
+    this.ctx.arc(clock_cx, clock_cy, clock_r, 0, Math.PI * 2);
+    this.ctx.stroke();
+    this.ctx.fillStyle = colors.c_main;
+    this.ctx.font = 'bold 20px monospace';
+    for (let i = 0; i < pool_len; i++) {
+      let angle = (i / pool_len) * Math.PI * 2 - Math.PI / 2;
+      let inner_x = clock_cx + Math.cos(angle) * (clock_r - 15);
+      let inner_y = clock_cy + Math.sin(angle) * (clock_r - 15);
+      let outer_x = clock_cx + Math.cos(angle) * clock_r;
+      let outer_y = clock_cy + Math.sin(angle) * clock_r;
+      this.ctx.beginPath();
+      this.ctx.moveTo(inner_x, inner_y);
+      this.ctx.lineTo(outer_x, outer_y);
+      this.ctx.stroke();
+      let tx = clock_cx + Math.cos(angle) * (clock_r + 25);
+      let ty = clock_cy + Math.sin(angle) * (clock_r + 25);
+      this.ctx.fillText(i + 1, tx, ty);
+    }
+    let key_cy = this.split_y + 620;
     let key_cx = this.canvas_el.width / 2;
     let r_large = 100;
+    this.ctx.fillStyle = colors.c_a2;
+    this.ctx.beginPath();
+    this.ctx.moveTo(key_cx, key_cy);
+    this.ctx.arc(key_cx, key_cy, r_large, this.sweep_angle - Math.PI / 4, this.sweep_angle);
+    this.ctx.lineTo(key_cx, key_cy);
+    this.ctx.fill();
+    this.ctx.strokeStyle = colors.c_lgt;
+    this.ctx.lineWidth = 3;
+    this.ctx.beginPath();
+    this.ctx.moveTo(key_cx, key_cy);
+    this.ctx.lineTo(key_cx + Math.cos(this.sweep_angle) * r_large, key_cy + Math.sin(this.sweep_angle) * r_large);
+    this.ctx.stroke();
+    this.ctx.lineWidth = 2;
     this.ctx.strokeStyle = colors.c_drk;
     this.ctx.beginPath();
     this.ctx.arc(key_cx, key_cy, r_large, 0, Math.PI * 2);
