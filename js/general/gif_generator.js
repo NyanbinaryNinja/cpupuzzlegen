@@ -64,8 +64,8 @@ class gif_generator {
     let worker_url = URL.createObjectURL(worker_blob);
 
     if (this.split_mode) {
-      await this.save_file(this.frames, 'key.gif', worker_url);
-      await this.save_file(this.frames2, 'grid.gif', worker_url);
+      await this.save_file(this.frames, 'message.gif', worker_url);
+      await this.save_file(this.frames2, 'key.gif', worker_url);
     } else {
       await this.save_file(this.frames, 'puzzle.gif', worker_url);
     }
