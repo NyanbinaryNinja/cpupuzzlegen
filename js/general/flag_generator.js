@@ -16,6 +16,7 @@ function generate_custom_flag() {
   let output = generate_flag(prefix, flag);
   document.getElementById('flag_output').value = output;
   if (document.getElementById('add_to_cipher_cb').checked) {
-    document.getElementById('input_box').value += output;
+    document.getElementById('input_box').value = output;
+    generate_grid();
   }
 }
