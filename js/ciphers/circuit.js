@@ -35,7 +35,8 @@ class circuit_cipher {
     let rows = Math.max(1, Math.ceil(this.cipher_coords.length / 4));
     this.split_y = Math.floor(40 + rows * 60 + 50);
     this.canvas_el.width = 600;
-    this.canvas_el.height = this.split_y + Math.max(120, Math.ceil(this.char_pool.length / 6) * 40 + 60);
+    let show_legend = document.getElementById('circuit_legend_cb') && document.getElementById('circuit_legend_cb').checked;
+    this.canvas_el.height = this.split_y + Math.max(120, Math.ceil(this.char_pool.length / 6) * 40 + 60) + (show_legend ? 60 : 0);
   }
   draw_and(x, y) {
     this.ctx.beginPath();
@@ -107,7 +108,8 @@ class circuit_cipher {
       } else {
         this.ctx.moveTo(prev_x, prev_y);
         this.ctx.lineTo(prev_x + 20, prev_y);
-        this.ctx.lineTo(prev_x + 20, cy);
+        this.ctx.lineTo(prev_x + 20, cy - 30);
+        this.ctx.lineTo(cx - 30, cy - 30);
         this.ctx.lineTo(cx - 30, cy);
       }
       this.ctx.lineTo(cx - 15, cy);
@@ -143,6 +145,16 @@ class circuit_cipher {
       this.ctx.lineTo(kx + 15, ky);
       this.ctx.stroke();
       this.gates[pair[1]](kx + 30, ky);
+    }
+    let show_legend = document.getElementById('circuit_legend_cb') && document.getElementById('circuit_legend_cb').checked;
+    if (show_legend) {
+      let legend_y = key_start_y + Math.ceil(this.char_pool.length / 6) * 40 + 20;
+      let names = ["AND", "OR", "XOR", "NOT", "NAND", "NOR"];
+      for (let i = 0; i < 6; i++) {
+        let lx = 60 + i * 90;
+        this.gates[i](lx - 15, legend_y);
+        this.ctx.fillText(names[i], lx + 15, legend_y);
+      }
     }
   }
 }

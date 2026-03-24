@@ -22,6 +22,7 @@ window.generate_grid = function() {
   let input_val = input_box.value;
   document.getElementById('opt_poly').style.display = c_type === 'poly' ? 'block' : 'none';
   document.getElementById('opt_radar').style.display = c_type === 'radar' ? 'block' : 'none';
+  document.getElementById('opt_circuit').style.display = c_type === 'circuit' ? 'block' : 'none';
   current_cipher = ciphers[c_type];
   current_cipher.generate(input_val);
   if (!anim_frame) {
