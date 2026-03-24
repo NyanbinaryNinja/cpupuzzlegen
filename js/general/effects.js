@@ -4,7 +4,7 @@ class effects_manager {
     this.ctx = ctx;
     this.stutter_timer = 0;
     this.last_frame = null;
-    this.cfg = { rgb_en: 0, rgb_v: 2, noise_en: 0, noise_v: 0.1, track_en: 0, track_v: 5, stut_en: 0, stut_v: 0.05, scan_en: 1, scan_v: 1, vig_en: 0, vig_v: 0.5, bloom_en: 0, bloom_v: 5 };
+    this.cfg = { rgb_en: 0, rgb_v: 0, noise_en: 0, noise_v: 0, track_en: 0, track_v: 0, stut_en: 0, stut_v: 0, scan_en: 1, scan_v: 0.3, vig_en: 0, vig_v: 0, bloom_en: 0, bloom_v: 0 };
   }
   init_ui() {
     this.update_cfg();
