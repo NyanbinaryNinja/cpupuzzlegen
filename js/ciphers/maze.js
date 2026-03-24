@@ -6,6 +6,7 @@ class maze_cipher {
     this.path = [];
     this.split_y = 0;
   }
+  
   generate(input_val) {
     let filter_data = input_filter.get_filtered_chars(input_val);
     let msg = filter_data.clean_val || "A";
