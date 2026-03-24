@@ -25,7 +25,16 @@ class pigpen_cipher {
     this.ctx.fillStyle = colors.c_main;
     this.ctx.lineWidth = 2;
     for (let j = 0; j < this.cipher_coords.length; j++) {
-      let sx = 44 + (j % 8) * 36, sy = 40 + Math.floor(j / 8) * 45, i = this.cipher_coords[j], d = 12;
+      let row = Math.floor(j / 8);
+      let num_in_row = Math.min(8, this.cipher_coords.length - row * 8);
+      let offset = 0;
+      if (num_in_row < 8) {
+        let left = 44;
+        let right = 44 + (num_in_row - 1) * 36;
+        let center_symbols = (left + right) / 2;
+        offset = 170 - center_symbols;
+      }
+      let sx = 44 + offset + (j % 8) * 36, sy = 40 + Math.floor(j / 8) * 45, i = this.cipher_coords[j], d = 12;
       this.ctx.beginPath();
       if (i < 18) {
         let r = Math.floor((i % 9) / 3), c = (i % 9) % 3;
