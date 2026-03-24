@@ -97,9 +97,7 @@ class circuit_cipher {
     if (show_legend) {
       let names = ["AND", "OR", "XOR", "NOT", "NAND", "NOR"];
       for (let i = 0; i < 6; i++) {
-        let lx = 60 + i * 90;
-        this.gates[i](lx - 15, current_y);
-        this.ctx.fillText(names[i], lx + 15, current_y);
+
         let lx = 55 + i * 92;
         this.gates[i](lx - 20, current_y);
         this.ctx.fillText(names[i], lx + 20, current_y);
