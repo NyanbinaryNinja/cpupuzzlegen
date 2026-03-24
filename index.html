@@ -52,7 +52,7 @@ input[type="checkbox"] {
     <fieldset><input type="checkbox" id="add_to_cipher_cb"><label for="add_to_cipher_cb"> Add to cipher input</label></fieldset>
   </div>
 </div>
-<div class="window" style="position:absolute;top:20px;left:50%;transform:translateX(-50%);width:400px;margin:10px 0;">
+<div class="window" style="position:absolute;top:20px;left:50%;transform:translateX(-50%);width:400px;margin:10px 0 20px 0;">
   <div class="title-bar">
     <div class="title-bar-text">Controls</div>
     <div class="title-bar-controls">
@@ -63,8 +63,8 @@ input[type="checkbox"] {
   </div>
   <div class="window-body" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
     <fieldset style="margin-bottom: 15px; border: 1px solid gray; padding: 10px; width: 90%; text-align: center;">
-      <label for="cipher_type" style="display: inline-block; margin-right: 10px;">Cipher Type:</label>
-      <select id="cipher_type" onchange="generate_grid()" style="width: 180px; display: inline-block; vertical-align: middle;">
+      <label for="cipher_select" style="display: inline-block; margin-right: 10px;">Cipher Type:</label>
+      <select id="cipher_select" onchange="generate_grid()" style="width: 180px; display: inline-block; vertical-align: middle;">
         <option value="poly">Polybius Square</option>
         <option value="pig">Pigpen Cipher</option>
         <option value="radar">Radar</option>
@@ -99,7 +99,7 @@ input[type="checkbox"] {
         <option value="5">Rainbow Gradient (Moggers)</option>
         <option value="6">Colour Picker</option>
       </select>
-      <input type="color" id="c_pick" value="#00ff44" style="display:none;height:22px;padding:0;border:none;vertical-align: middle;">
+      <input type="color" id="c_pick" value="#00ff44" style="display:none;height:22px;padding:0;border:none;vertical-align: middle;width:50%;">
     </fieldset>
     <div id="opt_poly" style="display:none;"><fieldset><input type="checkbox" id="poly_num_cb" onchange="generate_grid()" checked><label for="poly_num_cb"> Show Numbers</label></fieldset></div>
     <div id="opt_radar" style="display:none;"><fieldset><input type="checkbox" id="radar_clock_cb" onchange="generate_grid()" checked><label for="radar_clock_cb"> Show Clock Guide</label></fieldset></div>
