@@ -34,6 +34,26 @@ input[type="checkbox"] {
 
 </head>
 <body>
+<div class="window" style="position:absolute;top:20px;left:20px;width:300px;">
+  <div class="title-bar">
+    <div class="title-bar-text">Flag Generator</div>
+    <div class="title-bar-controls">
+      <button aria-label="Minimize"></button>
+      <button aria-label="Maximize"></button>
+      <button aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    <label for="prefix_input">Prefix:</label>
+    <input type="text" id="prefix_input" value="prefix">
+    <label for="flag_input">Flag:</label>
+    <input type="text" id="flag_input" value="flag">
+    <button onclick="generate_custom_flag()">Generate Flag</button>
+    <label for="flag_output">Output:</label>
+    <input type="text" id="flag_output" readonly>
+    <fieldset><input type="checkbox" id="add_to_cipher_cb"><label for="add_to_cipher_cb"> Add to cipher input</label></fieldset>
+  </div>
+</div>
 <div class="window" style="position:absolute;top:20px;left:50%;transform:translateX(-50%);width:340px;height:150px;margin:10px 0;">
   <div class="title-bar">
     <div class="title-bar-text">Controls</div>
@@ -85,5 +105,16 @@ input[type="checkbox"] {
   </div>
 </div>
 <canvas id="canvas_el"></canvas>
+<script>
+function generate_custom_flag() {
+  let prefix = document.getElementById('prefix_input').value;
+  let flag = document.getElementById('flag_input').value;
+  let output = generate_flag(prefix, flag);
+  document.getElementById('flag_output').value = output;
+  if (document.getElementById('add_to_cipher_cb').checked) {
+    document.getElementById('input_box').value += output;
+  }
+}
+</script>
 </body>
 </html>
