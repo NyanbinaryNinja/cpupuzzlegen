@@ -32,11 +32,12 @@ class circuit_cipher {
       this.char_mapping[this.char_pool[i]] = all_pairs[i];
     }
     this.cipher_coords = filter_data.clean_val.split('').map(char => this.char_mapping[char]);
-    let rows = Math.max(1, Math.ceil(this.cipher_coords.length / 4));
-    this.split_y = Math.floor(40 + rows * 60 + 50);
-    this.canvas_el.width = 600;
     let show_legend = document.getElementById('circuit_legend_cb') && document.getElementById('circuit_legend_cb').checked;
-    this.canvas_el.height = this.split_y + Math.max(120, Math.ceil(this.char_pool.length / 6) * 40 + 60) + (show_legend ? 60 : 0);
+    let key_rows = Math.ceil(this.char_pool.length / 6);
+    this.split_y = (show_legend ? 100 : 40) + key_rows * 40 + 20;
+    this.canvas_el.width = 600;
+    let rows = Math.max(1, Math.ceil(this.cipher_coords.length / 4));
+    this.canvas_el.height = this.split_y + Math.floor(40 + rows * 60 + 50);
   }
   draw_and(x, y) {
     this.ctx.beginPath();
@@ -91,8 +92,39 @@ class circuit_cipher {
     this.ctx.fillStyle = colors.c_main;
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
+    let show_legend = document.getElementById('circuit_legend_cb') && document.getElementById('circuit_legend_cb').checked;
+    let current_y = 40;
+    if (show_legend) {
+      let names = ["AND", "OR", "XOR", "NOT", "NAND", "NOR"];
+      for (let i = 0; i < 6; i++) {
+        let lx = 60 + i * 90;
+        this.gates[i](lx - 15, current_y);
+        this.ctx.fillText(names[i], lx + 15, current_y);
+        let lx = 55 + i * 92;
+        this.gates[i](lx - 20, current_y);
+        this.ctx.fillText(names[i], lx + 20, current_y);
+      }
+      current_y += 60;
+    }
+    this.ctx.font = 'bold 16px monospace';
+    let key_start_y = current_y;
+    for (let i = 0; i < this.char_pool.length; i++) {
+      let row = Math.floor(i / 6);
+      let col = i % 6;
+      let kx = 60 + col * 90;
+      let ky = key_start_y + row * 40;
+      let char = this.char_pool[i];
+      let pair = this.char_mapping[char];
+      this.ctx.fillText(char, kx - 30, ky);
+      this.gates[pair[0]](kx - 10, ky);
+      this.ctx.beginPath();
+      this.ctx.moveTo(kx + 5, ky);
+      this.ctx.lineTo(kx + 15, ky);
+      this.ctx.stroke();
+      this.gates[pair[1]](kx + 30, ky);
+    }
     let start_x = 40;
-    let start_y = 60;
+    let start_y = this.split_y + 60;
     let prev_x = start_x;
     let prev_y = start_y;
     for (let i = 0; i < this.cipher_coords.length; i++) {
@@ -128,33 +160,6 @@ class circuit_cipher {
       this.ctx.moveTo(prev_x, prev_y);
       this.ctx.lineTo(prev_x + 20, prev_y);
       this.ctx.stroke();
-    }
-    let key_start_y = this.split_y + 40;
-    this.ctx.font = 'bold 16px monospace';
-    for (let i = 0; i < this.char_pool.length; i++) {
-      let row = Math.floor(i / 6);
-      let col = i % 6;
-      let kx = 60 + col * 90;
-      let ky = key_start_y + row * 40;
-      let char = this.char_pool[i];
-      let pair = this.char_mapping[char];
-      this.ctx.fillText(char, kx - 30, ky);
-      this.gates[pair[0]](kx - 10, ky);
-      this.ctx.beginPath();
-      this.ctx.moveTo(kx + 5, ky);
-      this.ctx.lineTo(kx + 15, ky);
-      this.ctx.stroke();
-      this.gates[pair[1]](kx + 30, ky);
-    }
-    let show_legend = document.getElementById('circuit_legend_cb') && document.getElementById('circuit_legend_cb').checked;
-    if (show_legend) {
-      let legend_y = key_start_y + Math.ceil(this.char_pool.length / 6) * 40 + 20;
-      let names = ["AND", "OR", "XOR", "NOT", "NAND", "NOR"];
-      for (let i = 0; i < 6; i++) {
-        let lx = 60 + i * 90;
-        this.gates[i](lx - 15, legend_y);
-        this.ctx.fillText(names[i], lx + 15, legend_y);
-      }
     }
   }
 }
