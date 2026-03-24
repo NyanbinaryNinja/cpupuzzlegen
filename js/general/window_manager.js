@@ -50,13 +50,23 @@
       active.style.left=clamp_scalar(l,0,window.innerWidth-start_w)+'px'; active.style.top=clamp_scalar(t,0,window.innerHeight-start_h)+'px';
     } else if(mode==='resize'){
       let l=start_left,t=start_top,w=start_w,h=start_h;
+      
       if(dir.includes('r')) w=clamp_scalar(Math.max(100,start_w+dx),100,window.innerWidth-start_left);
+      if(dir.includes('l')){w=Math.max(100,start_w-dx); l=start_left+(start_w-w); if(l<0){l=0; w=start_left+start_w;}}
+      
+      const rx = {left:l, right:l+w, top:start_top, bottom:start_top+start_h};
+      if(rects_intersect(rx, canvas)){
+        if(dir.includes('r')) w = Math.max(100, canvas.left - start_left - 10);
+        if(dir.includes('l')) { w = Math.max(100, start_w + (start_left - (canvas.right + 10))); l = start_left + start_w - w; }
+      }
+      
       if(dir.includes('b')) h=clamp_scalar(Math.max(80,start_h+dy),80,window.innerHeight-start_top);
-      if(dir.includes('l')){const nw=Math.max(100,start_w-dx); const nl=start_left+dx; if(nl>=0&&nw+nl<=window.innerWidth){w=nw; l=nl;}}
-      if(dir.includes('t')){const nh=Math.max(80,start_h-dy); const nt=start_top+dy; if(nt>=0&&nh+nt<=window.innerHeight){h=nh; t=nt;}}
-      const R={left:l,right:l+w,top:t,bottom:t+h};
-      if(rects_intersect(R,canvas)){
-        if(t<h&&t<canvas.bottom) h=Math.max(80,canvas.top-t-10);
+      if(dir.includes('t')){h=Math.max(80,start_h-dy); t=start_top+(start_h-h); if(t<0){t=0; h=start_top+start_h;}}
+      
+      const ry = {left:l, right:l+w, top:t, bottom:t+h};
+      if(rects_intersect(ry, canvas)){
+        if(dir.includes('b')) h = Math.max(80, canvas.top - start_top - 10);
+        if(dir.includes('t')) { h = Math.max(80, start_h + (start_top - (canvas.bottom + 10))); t = start_top + start_h - h; }
       }
       active.style.left=l+'px'; active.style.top=t+'px'; active.style.width=w+'px'; active.style.height=h+'px';
     }

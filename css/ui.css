@@ -11,6 +11,15 @@ canvas{margin:320px auto 20px;box-shadow:0 0 20px #0f43;max-width:95vw;height:au
 .window .handle.b{left:50%;bottom:4px;transform:translateX(-50%);cursor:s-resize;width:14px;height:10px;}
 .window .handle.l{left:4px;top:50%;transform:translateY(-50%);cursor:w-resize;width:10px;height:14px;}
 .window .handle.r{right:4px;top:50%;transform:translateY(-50%);cursor:e-resize;width:10px;height:14px;}
+.handle { position: absolute; z-index: 100; }
+.handle.t { top: -5px; left: 0; right: 0; height: 10px; cursor: n-resize; }
+.handle.b { bottom: -5px; left: 0; right: 0; height: 10px; cursor: s-resize; }
+.handle.l { top: 0; bottom: 0; left: -5px; width: 10px; cursor: w-resize; }
+.handle.r { top: 0; bottom: 0; right: -5px; width: 10px; cursor: e-resize; }
+.handle.tl { top: -5px; left: -5px; width: 15px; height: 15px; cursor: nw-resize; }
+.handle.tr { top: -5px; right: -5px; width: 15px; height: 15px; cursor: ne-resize; }
+.handle.bl { bottom: -5px; left: -5px; width: 15px; height: 15px; cursor: sw-resize; }
+.handle.br { bottom: -5px; right: -5px; width: 15px; height: 15px; cursor: se-resize; }
 #cipher_type{position:absolute;top:20px;left:20px}
 label, #cipher_type, #theme_sel, #c_pick {color: initial !important;}
 input[type="checkbox"] {appearance: auto !important; -webkit-appearance: checkbox !important; -moz-appearance: checkbox !important;}
