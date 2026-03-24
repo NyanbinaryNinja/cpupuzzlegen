@@ -21,8 +21,28 @@ canvas{margin:320px auto 20px;box-shadow:0 0 20px #0f43;max-width:95vw;height:au
 .handle.bl { bottom: -5px; left: -5px; width: 15px; height: 15px; cursor: sw-resize; }
 .handle.br { bottom: -5px; right: -5px; width: 15px; height: 15px; cursor: se-resize; }
 #cipher_type{position:absolute;top:20px;left:20px}
-label, #cipher_type, #theme_sel, #c_pick {color: initial !important;}
+label, legend, #cipher_type, #theme_sel, #c_pick {color: inherit !important; font-family: inherit !important;}
 input[type="checkbox"] {appearance: auto !important; -webkit-appearance: checkbox !important; -moz-appearance: checkbox !important;}
+.flag-window { top: 20px; left: 20px; width: 300px; }
+.controls-window { top: 80px; left: 50%; transform: translateX(-50%); width: 360px; }
+.options-window { top: 20px; right: 20px; width: 300px; }
+.effects-window { top: 300px; right: 20px; width: 300px; }
+.controls-body { text-align: center; display: flex; flex-direction: column; align-items: center; }
+.control-fieldset { margin-bottom: 15px; border: 1px solid gray; padding: 10px; width: 90%; }
+.text-center { text-align: center; }
+.flex-center { display: flex; justify-content: center; }
+.gap-15 { gap: 15px; }
+.inline-label { display: inline-block; margin-right: 10px; }
+.cipher-select { width: 180px; display: inline-block; vertical-align: middle; }
+.w-100 { width: 100%; box-sizing: border-box; }
+.mb-5 { margin-bottom: 5px; }
+.options-theme-fieldset { margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+.theme-select { display: inline-block; vertical-align: middle; }
+.color-picker { height: 22px; padding: 0; border: none; vertical-align: middle; width: 50%; }
+.fx-fieldset { margin-bottom: 5px; display: flex; align-items: center; justify-content: space-between; }
+.fx-group { display: flex; align-items: center; gap: 5px; }
+.fx-slider { width: 60px; }
+.fx-number { width: 50px; }
 @media (max-width: 820px){
   body{justify-content:flex-start;padding:10px;}
   .window{position:static;left:auto;top:auto;transform:none;display:block;margin:8px auto;max-width:calc(100vw - 20px);}

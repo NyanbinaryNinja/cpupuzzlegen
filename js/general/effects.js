@@ -43,9 +43,12 @@ class effects_manager {
     let cw = this.canvas_el.width, ch = this.canvas_el.height;
     if (cw === 0 || ch === 0) return;
     if (this.cfg.bloom_en) {
+      let tmp = document.createElement('canvas');
+      tmp.width = cw; tmp.height = ch;
+      tmp.getContext('2d').drawImage(this.canvas_el, 0, 0);
       this.ctx.globalCompositeOperation = 'screen';
       this.ctx.filter = `blur(${this.cfg.bloom_v}px)`;
-      this.ctx.drawImage(this.canvas_el, 0, 0);
+      this.ctx.drawImage(tmp, 0, 0);
       this.ctx.filter = 'none';
       this.ctx.globalCompositeOperation = 'source-over';
     }
