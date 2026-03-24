@@ -9,3 +9,13 @@ function generate_flag(prefix, flag) {
   }
   return prefix + '{' + leet_flag + '}';
 }
+
+function generate_custom_flag() {
+  let prefix = document.getElementById('prefix_input').value;
+  let flag = document.getElementById('flag_input').value;
+  let output = generate_flag(prefix, flag);
+  document.getElementById('flag_output').value = output;
+  if (document.getElementById('add_to_cipher_cb').checked) {
+    document.getElementById('input_box').value += output;
+  }
+}

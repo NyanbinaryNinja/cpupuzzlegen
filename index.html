@@ -44,13 +44,10 @@ input[type="checkbox"] {
     </div>
   </div>
   <div class="window-body">
-    <label for="prefix_input">Prefix:</label>
-    <input type="text" id="prefix_input" value="prefix">
-    <label for="flag_input">Flag:</label>
-    <input type="text" id="flag_input" value="flag">
-    <button onclick="generate_custom_flag()">Generate Flag</button>
-    <label for="flag_output">Output:</label>
-    <input type="text" id="flag_output" readonly>
+    <fieldset style="margin-bottom: 5px;"><label for="prefix_input">Prefix:</label><input type="text" id="prefix_input" value="prefix"></fieldset>
+    <fieldset style="margin-bottom: 5px;"><label for="flag_input">Flag:</label><input type="text" id="flag_input" value="flag"></fieldset>
+    <fieldset style="margin-bottom: 5px;"><button onclick="generate_custom_flag()">Generate Flag</button></fieldset>
+    <fieldset style="margin-bottom: 5px;"><label for="flag_output">Output:</label><input type="text" id="flag_output" readonly></fieldset>
     <fieldset><input type="checkbox" id="add_to_cipher_cb"><label for="add_to_cipher_cb"> Add to cipher input</label></fieldset>
   </div>
 </div>
@@ -63,18 +60,22 @@ input[type="checkbox"] {
       <button aria-label="Close"></button>
     </div>
   </div>
-  <div class="window-body">
-    <label for="cipher_type">Cipher Type:</label>
-    <select id="cipher_type" onchange="generate_grid()">
-      <option value="poly">Polybius Square</option>
-      <option value="pig">Pigpen Cipher</option>
-      <option value="radar">Radar</option>
-    </select>
-    <div><input id="input_box" value="" placeholder=""></div>
-    <div style="margin-top:10px;">
+  <div class="window-body" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
+    <fieldset style="margin-bottom: 10px; border: none; padding: 0;">
+      <label for="cipher_type">Cipher Type:</label>
+      <select id="cipher_type" onchange="generate_grid()">
+        <option value="poly">Polybius Square</option>
+        <option value="pig">Pigpen Cipher</option>
+        <option value="radar">Radar</option>
+      </select>
+    </fieldset>
+    <fieldset style="margin-bottom: 10px; border: none; padding: 0;">
+      <input id="input_box" value="" placeholder="">
+    </fieldset>
+    <fieldset style="border: none; padding: 0;">
       <button onclick="generate_grid()">Generate Grid</button>
       <button id="rec_btn" onclick="start_recording()">Record File</button>
-    </div>
+    </fieldset>
   </div>
 </div>
 <div class="window" style="position:absolute;top:20px;right:20px;width:300px;">
@@ -87,7 +88,7 @@ input[type="checkbox"] {
     </div>
   </div>
   <div class="window-body">
-    <div style="display:flex;gap:5px;margin-bottom:10px;">
+    <fieldset style="margin-bottom:10px;">
       <label for="theme_sel">Theme:</label>
       <select id="theme_sel" onchange="document.getElementById('c_pick').style.display=this.value=='6'?'inline-block':'none'">
         <option value="1">Neon Green</option>
@@ -98,23 +99,12 @@ input[type="checkbox"] {
         <option value="6">Colour Picker</option>
       </select>
       <input type="color" id="c_pick" value="#00ff44" style="display:none;height:22px;padding:0;border:none;">
-    </div>
+    </fieldset>
     <div id="opt_poly" style="display:none;"><fieldset><input type="checkbox" id="poly_num_cb" onchange="generate_grid()" checked><label for="poly_num_cb"> Show Numbers</label></fieldset></div>
     <div id="opt_radar" style="display:none;"><fieldset><input type="checkbox" id="radar_clock_cb" onchange="generate_grid()" checked><label for="radar_clock_cb"> Show Clock Guide</label></fieldset></div>
     <div><fieldset><input type="checkbox" id="split_cb"><label for="split_cb"> Split Key & Grid</label></fieldset></div>
   </div>
 </div>
 <canvas id="canvas_el"></canvas>
-<script>
-function generate_custom_flag() {
-  let prefix = document.getElementById('prefix_input').value;
-  let flag = document.getElementById('flag_input').value;
-  let output = generate_flag(prefix, flag);
-  document.getElementById('flag_output').value = output;
-  if (document.getElementById('add_to_cipher_cb').checked) {
-    document.getElementById('input_box').value += output;
-  }
-}
-</script>
 </body>
 </html>
