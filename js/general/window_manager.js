@@ -11,9 +11,10 @@
 
   function create_handles(w){['tl','tr','bl','br','t','b','l','r'].forEach(d=>{const h=document.createElement('div');h.className='handle '+d;h.dataset.dir=d;w.appendChild(h);});}
 
-  function down(e){if(window.matchMedia('(max-width:820px)').matches)return; const t=e.target; const w=t.closest('.window'); if(!w)return; if(e.cancelable) e.preventDefault();
+  function down(e){if(window.matchMedia('(max-width:820px)').matches)return; const t=e.target; const w=t.closest('.window'); if(!w)return;
     const c=get_coord(e); const h=t.closest('.handle');
     if(h){mode='resize'; dir=h.dataset.dir;} else if(t.closest('.title-bar')){mode='move';} else return;
+    if(e.cancelable) e.preventDefault();
     active=w; start_x=c.x; start_y=c.y; start_left=w.offsetLeft; start_top=w.offsetTop; start_w=w.offsetWidth; start_h=w.offsetHeight;
     active.style.zIndex=++max_z; document.body.style.userSelect='none'; document.body.style.cursor=mode==='move'?'grabbing':'se-resize';
     window.addEventListener('pointermove',move); window.addEventListener('pointerup',up); window.addEventListener('pointercancel',up);
