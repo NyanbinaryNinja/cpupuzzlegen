@@ -15,6 +15,13 @@
     const c=get_coord(e); const h=t.closest('.handle');
     if(h){mode='resize'; dir=h.dataset.dir;} else if(t.closest('.title-bar')){mode='move';} else return;
     if(e.cancelable) e.preventDefault();
+    if(w.style.transform){
+      const rect=w.getBoundingClientRect();
+      w.style.transform='none';
+      const new_rect=w.getBoundingClientRect();
+      w.style.left=(w.offsetLeft-(new_rect.left-rect.left))+'px';
+      w.style.top=(w.offsetTop-(new_rect.top-rect.top))+'px';
+    }
     active=w; start_x=c.x; start_y=c.y; start_left=w.offsetLeft; start_top=w.offsetTop; start_w=w.offsetWidth; start_h=w.offsetHeight;
     active.style.zIndex=++max_z; document.body.style.userSelect='none'; document.body.style.cursor=mode==='move'?'grabbing':'se-resize';
     window.addEventListener('pointermove',move); window.addEventListener('pointerup',up); window.addEventListener('pointercancel',up);
