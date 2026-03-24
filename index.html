@@ -115,7 +115,7 @@
   <div class="window-body">
     <fieldset class="mb-5">
       <legend>Preset Code</legend>
-      <input type="text" id="fx_code" value="0|2|0|0.1|0|5|0|0.05|1|1|1|1|0|0.5|0|5" class="w-100" oninput="fx.load_code(this.value)">
+      <input type="text" id="fx_code" value="0|2|0|0.1|0|5|0|0.05|1|1|0|0.5|0|5" class="w-100" oninput="fx.load_code(this.value)">
     </fieldset>
     <fieldset class="fx-fieldset">
       <div class="fx-group"><input type="checkbox" id="fx_rgb_en" onchange="fx.update_cfg()"><label for="fx_rgb_en">RGB Split</label></div>
@@ -126,7 +126,7 @@
       <div class="fx-group"><input type="range" id="fx_noise_sld" min="0" max="1" step="0.01" value="0.1" disabled oninput="fx.sync_inputs(this)" class="fx-slider"><input type="number" id="fx_noise_num" min="0" max="1" step="0.01" value="0.1" disabled oninput="fx.sync_inputs(this)" class="fx-number"></div>
     </fieldset>
     <fieldset class="fx-fieldset">
-      <div class="fx-group"><input type="checkbox" id="fx_track_en" onchange="fx.update_cfg()"><label for="fx_track_en">Tracking Glitch</label></div>
+      <div class="fx-group"><input type="checkbox" id="fx_track_en" onchange="fx.update_cfg()"><label for="fx_track_en">Glitches</label></div>
       <div class="fx-group"><input type="range" id="fx_track_sld" min="0" max="20" step="1" value="5" disabled oninput="fx.sync_inputs(this)" class="fx-slider"><input type="number" id="fx_track_num" min="0" max="20" step="1" value="5" disabled oninput="fx.sync_inputs(this)" class="fx-number"></div>
     </fieldset>
     <fieldset class="fx-fieldset">
@@ -134,11 +134,7 @@
       <div class="fx-group"><input type="range" id="fx_stut_sld" min="0" max="1" step="0.01" value="0.05" disabled oninput="fx.sync_inputs(this)" class="fx-slider"><input type="number" id="fx_stut_num" min="0" max="1" step="0.01" value="0.05" disabled oninput="fx.sync_inputs(this)" class="fx-number"></div>
     </fieldset>
     <fieldset class="fx-fieldset">
-      <div class="fx-group"><input type="checkbox" id="fx_grid_en" checked onchange="fx.update_cfg()"><label for="fx_grid_en">Background Grid</label></div>
-      <div class="fx-group"><input type="range" id="fx_grid_sld" min="0" max="1" step="0.1" value="1" oninput="fx.sync_inputs(this)" class="fx-slider"><input type="number" id="fx_grid_num" min="0" max="1" step="0.1" value="1" oninput="fx.sync_inputs(this)" class="fx-number"></div>
-    </fieldset>
-    <fieldset class="fx-fieldset">
-      <div class="fx-group"><input type="checkbox" id="fx_scan_en" checked onchange="fx.update_cfg()"><label for="fx_scan_en">Moving Scanbar</label></div>
+      <div class="fx-group"><input type="checkbox" id="fx_scan_en" checked onchange="fx.update_cfg()"><label for="fx_scan_en">Scanbar</label></div>
       <div class="fx-group"><input type="range" id="fx_scan_sld" min="0" max="1" step="0.1" value="1" oninput="fx.sync_inputs(this)" class="fx-slider"><input type="number" id="fx_scan_num" min="0" max="1" step="0.1" value="1" oninput="fx.sync_inputs(this)" class="fx-number"></div>
     </fieldset>
     <fieldset class="fx-fieldset">

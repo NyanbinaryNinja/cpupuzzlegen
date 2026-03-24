@@ -4,13 +4,13 @@ class effects_manager {
     this.ctx = ctx;
     this.stutter_timer = 0;
     this.last_frame = null;
-    this.cfg = { rgb_en: 0, rgb_v: 2, noise_en: 0, noise_v: 0.1, track_en: 0, track_v: 5, stut_en: 0, stut_v: 0.05, grid_en: 1, grid_v: 1, scan_en: 1, scan_v: 1, vig_en: 0, vig_v: 0.5, bloom_en: 0, bloom_v: 5 };
+    this.cfg = { rgb_en: 0, rgb_v: 2, noise_en: 0, noise_v: 0.1, track_en: 0, track_v: 5, stut_en: 0, stut_v: 0.05, scan_en: 1, scan_v: 1, vig_en: 0, vig_v: 0.5, bloom_en: 0, bloom_v: 5 };
   }
   init_ui() {
     this.update_cfg();
   }
   update_cfg() {
-    let ids = ['rgb', 'noise', 'track', 'stut', 'grid', 'scan', 'vig', 'bloom'], arr = [];
+    let ids = ['rgb', 'noise', 'track', 'stut', 'scan', 'vig', 'bloom'], arr = [];
     ids.forEach(id => {
       let cb = document.getElementById(`fx_${id}_en`), num = document.getElementById(`fx_${id}_num`), sld = document.getElementById(`fx_${id}_sld`);
       let en = cb && cb.checked ? 1 : 0, v = num ? parseFloat(num.value) || 0 : 0;
@@ -23,8 +23,8 @@ class effects_manager {
   }
   load_code(val) {
     let p = val.split('|').map(Number);
-    if (p.length === 16 && !p.some(isNaN)) {
-      ['rgb', 'noise', 'track', 'stut', 'grid', 'scan', 'vig', 'bloom'].forEach((id, i) => {
+    if (p.length === 14 && !p.some(isNaN)) {
+      ['rgb', 'noise', 'track', 'stut', 'scan', 'vig', 'bloom'].forEach((id, i) => {
         let cb = document.getElementById(`fx_${id}_en`), sld = document.getElementById(`fx_${id}_sld`), num = document.getElementById(`fx_${id}_num`);
         if (cb) cb.checked = p[i * 2] === 1;
         if (sld) sld.value = p[i * 2 + 1];

@@ -8,14 +8,12 @@ class grid_maker {
   draw_background(colors) {
     this.ctx.fillStyle = '#050505';
     this.ctx.fillRect(0, 0, this.canvas_el.width, this.canvas_el.height);
-    if (window.fx && window.fx.cfg.grid_en) {
-      this.ctx.globalAlpha = window.fx.cfg.grid_v;
-      for (let i = 0; i < this.canvas_el.height; i += 4) {
-        this.ctx.fillStyle = colors.c_a1;
-        this.ctx.fillRect(0, i, this.canvas_el.width, 1);
-      }
-      this.ctx.globalAlpha = 1;
+    this.ctx.globalAlpha = 0.5;
+    for (let i = 0; i < this.canvas_el.height; i += 4) {
+      this.ctx.fillStyle = colors.c_a1;
+      this.ctx.fillRect(0, i, this.canvas_el.width, 1);
     }
+    this.ctx.globalAlpha = 1;
   }
 
   draw_scanline(colors, split_mode, split_y) {

@@ -47,3 +47,18 @@ canvas{margin:320px auto 20px;box-shadow:0 0 20px #0f43;max-width:95vw;height:au
   .window .handle{display:none;}
   canvas{margin-top:20px;max-width:calc(100vw - 20px);height:auto;}
 }
+
+input[type="checkbox"] {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  width: 13px !important;
+  height: 13px !important;
+  background: #fff !important;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080 !important;
+  border: none !important;
+  margin: 0 4px 0 0 !important;
+}
+input[type="checkbox"]:checked {
+  background: #fff url("data:image/svg+xml;charset=utf-8,%3Csvg width='7' height='7' viewBox='0 0 7 7' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M7 0H6v1H5v1H4v1H3v1H2V3H1V2H0v3h1v1h1v1h1V6h1V5h1V4h1V3h1V0z' fill='%23000'/%3E%3C/svg%3E") no-repeat center center !important;
+}
