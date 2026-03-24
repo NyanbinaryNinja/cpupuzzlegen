@@ -4,6 +4,7 @@ class circuit_cipher {
     this.ctx = ctx;
     this.char_pool = [];
     this.cipher_coords = [];
+    this.char_mapping = {};
     this.split_y = 0;
     this.gates = [
       this.draw_and.bind(this),
@@ -16,16 +17,25 @@ class circuit_cipher {
   }
   generate(input_val) {
     let filter_data = input_filter.get_filtered_chars(input_val, 36);
-    let random_leftovers = filter_data.leftovers.sort(() => Math.random() - 0.5).slice(0, 36 - filter_data.unique_chars.length);
+    let target_size = Math.max(12, filter_data.unique_chars.length);
+    let random_leftovers = filter_data.leftovers.sort(() => Math.random() - 0.5).slice(0, target_size - filter_data.unique_chars.length);
     this.char_pool = [...filter_data.unique_chars, ...random_leftovers].sort(() => Math.random() - 0.5);
-    this.cipher_coords = filter_data.clean_val.split('').map(char => {
-      let idx = this.char_pool.indexOf(char);
-      return [Math.floor(idx / 6), idx % 6];
-    });
+    let all_pairs = [];
+    for (let i = 0; i < 6; i++) {
+      for (let j = 0; j < 6; j++) {
+        all_pairs.push([i, j]);
+      }
+    }
+    all_pairs.sort(() => Math.random() - 0.5);
+    this.char_mapping = {};
+    for (let i = 0; i < this.char_pool.length; i++) {
+      this.char_mapping[this.char_pool[i]] = all_pairs[i];
+    }
+    this.cipher_coords = filter_data.clean_val.split('').map(char => this.char_mapping[char]);
     let rows = Math.max(1, Math.ceil(this.cipher_coords.length / 4));
     this.split_y = Math.floor(40 + rows * 60 + 50);
     this.canvas_el.width = 600;
-    this.canvas_el.height = this.split_y + 300;
+    this.canvas_el.height = this.split_y + Math.max(120, Math.ceil(this.char_pool.length / 6) * 40 + 60);
   }
   draw_and(x, y) {
     this.ctx.beginPath();
@@ -119,20 +129,20 @@ class circuit_cipher {
     }
     let key_start_y = this.split_y + 40;
     this.ctx.font = 'bold 16px monospace';
-    for (let i = 0; i < 36; i++) {
+    for (let i = 0; i < this.char_pool.length; i++) {
       let row = Math.floor(i / 6);
       let col = i % 6;
       let kx = 60 + col * 90;
       let ky = key_start_y + row * 40;
-      if (this.char_pool[i]) {
-        this.ctx.fillText(this.char_pool[i], kx - 30, ky);
-        this.gates[Math.floor(i / 6)](kx - 10, ky);
-        this.ctx.beginPath();
-        this.ctx.moveTo(kx + 5, ky);
-        this.ctx.lineTo(kx + 15, ky);
-        this.ctx.stroke();
-        this.gates[i % 6](kx + 30, ky);
-      }
+      let char = this.char_pool[i];
+      let pair = this.char_mapping[char];
+      this.ctx.fillText(char, kx - 30, ky);
+      this.gates[pair[0]](kx - 10, ky);
+      this.ctx.beginPath();
+      this.ctx.moveTo(kx + 5, ky);
+      this.ctx.lineTo(kx + 15, ky);
+      this.ctx.stroke();
+      this.gates[pair[1]](kx + 30, ky);
     }
   }
 }
