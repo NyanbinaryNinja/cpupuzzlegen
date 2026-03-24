@@ -1,22 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<style>
-body{background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-family:monospace;margin:0;min-height:100vh;padding:20px;box-sizing:border-box}
-canvas{margin:320px auto 20px;box-shadow:0 0 20px #0f43;max-width:95vw;height:auto;border:1px solid #444;display:block;}
-.window{position:absolute;background:#111;min-width:240px;width:auto;max-width:95vw;box-sizing:border-box;touch-action:none;user-select:none;margin:10px;}
-.window .window-body{overflow:auto;max-height:70vh;}
-.window .resizer{position:absolute;width:18px;height:18px;right:4px;bottom:4px;cursor:se-resize;background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.6);border-radius:3px;}
-#cipher_type{position:absolute;top:20px;left:20px}
-label, #cipher_type, #theme_sel, #c_pick {color: initial !important;}
-input[type="checkbox"] {appearance: auto !important; -webkit-appearance: checkbox !important; -moz-appearance: checkbox !important;}
-@media (max-width: 820px){
-  body{justify-content:flex-start;padding:10px;}
-  .window{position:static;left:auto;top:auto;transform:none;display:block;margin:8px auto;max-width:calc(100vw - 20px);}
-  .window .resizer{display:none;}
-  canvas{margin-top:20px;max-width:calc(100vw - 20px);height:auto;}
-}
-</style>
 
 <script src="js/general/input_filter.js"></script>
 <script src="js/general/theme_manager.js"></script>
@@ -30,6 +14,8 @@ input[type="checkbox"] {appearance: auto !important; -webkit-appearance: checkbo
 <script src="js/ciphers/radar.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/gif.js/dist/gif.js"></script>
+
+<link rel="stylesheet" href="css/ui.css" />
 <link rel="stylesheet" href="https://unpkg.com/xp.css@0.2.3/dist/98.css" />
 
 <script src="js/app.js" defer></script>
