@@ -22,6 +22,7 @@ input[type="checkbox"] {
 <script src="js/general/theme_manager.js"></script>
 <script src="js/general/gif_generator.js"></script>
 <script src="js/general/grid_maker.js"></script>
+<script src="js/general/flag_generator.js"></script>
 
 <script src="js/ciphers/polybius.js"></script>
 <script src="js/ciphers/pigpen.js"></script>
@@ -44,8 +45,8 @@ input[type="checkbox"] {
     </div>
   </div>
   <div class="window-body">
-    <fieldset style="margin-bottom: 5px;"><label for="prefix_input">Prefix:</label><input type="text" id="prefix_input" value="prefix"></fieldset>
-    <fieldset style="margin-bottom: 5px;"><label for="flag_input">Flag:</label><input type="text" id="flag_input" value="flag"></fieldset>
+    <fieldset style="margin-bottom: 5px;"><label for="prefix_input">Prefix:</label><input type="text" id="prefix_input" value=""></fieldset>
+    <fieldset style="margin-bottom: 5px;"><label for="flag_input">Flag:</label><input type="text" id="flag_input" value=""></fieldset>
     <fieldset style="margin-bottom: 5px;"><button onclick="generate_custom_flag()">Generate Flag</button></fieldset>
     <fieldset style="margin-bottom: 5px;"><label for="flag_output">Output:</label><input type="text" id="flag_output" readonly></fieldset>
     <fieldset><input type="checkbox" id="add_to_cipher_cb"><label for="add_to_cipher_cb"> Add to cipher input</label></fieldset>
@@ -70,7 +71,7 @@ input[type="checkbox"] {
       </select>
     </fieldset>
     <fieldset style="margin-bottom: 10px; border: none; padding: 0;">
-      <input id="input_box" value="" placeholder="">
+      <input id="input_box" value="" placeholder="Enter text here...">
     </fieldset>
     <fieldset style="border: none; padding: 0;">
       <button onclick="generate_grid()">Generate Grid</button>
