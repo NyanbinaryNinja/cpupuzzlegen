@@ -62,9 +62,9 @@ input[type="checkbox"] {
     </div>
   </div>
   <div class="window-body" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
-    <fieldset style="margin-bottom: 15px; border: 1px solid gray; padding: 10px; width: 90%;">
+    <fieldset style="margin-bottom: 15px; border: 1px solid gray; padding: 10px; width: 90%; text-align: center;">
       <label for="cipher_type" style="display: inline-block; margin-right: 10px;">Cipher Type:</label>
-      <select id="cipher_type" onchange="generate_grid()" style="width: 180px;">
+      <select id="cipher_type" onchange="generate_grid()" style="width: 180px; display: inline-block; vertical-align: middle;">
         <option value="poly">Polybius Square</option>
         <option value="pig">Pigpen Cipher</option>
         <option value="radar">Radar</option>
@@ -89,9 +89,9 @@ input[type="checkbox"] {
     </div>
   </div>
   <div class="window-body">
-    <fieldset style="margin-bottom:10px;">
+    <fieldset style="margin-bottom:10px; display: flex; align-items: center; gap: 10px;">
       <label for="theme_sel">Theme:</label>
-      <select id="theme_sel" onchange="document.getElementById('c_pick').style.display=this.value=='6'?'inline-block':'none'">
+      <select id="theme_sel" onchange="document.getElementById('c_pick').style.display=this.value=='6'?'inline-block':'none'" style="display: inline-block; vertical-align: middle;">
         <option value="1">Neon Green</option>
         <option value="2">Gold (Winton)</option>
         <option value="3">Dark Red (Remed)</option>
@@ -99,7 +99,7 @@ input[type="checkbox"] {
         <option value="5">Rainbow Gradient (Moggers)</option>
         <option value="6">Colour Picker</option>
       </select>
-      <input type="color" id="c_pick" value="#00ff44" style="display:none;height:22px;padding:0;border:none;">
+      <input type="color" id="c_pick" value="#00ff44" style="display:none;height:22px;padding:0;border:none;vertical-align: middle;">
     </fieldset>
     <div id="opt_poly" style="display:none;"><fieldset><input type="checkbox" id="poly_num_cb" onchange="generate_grid()" checked><label for="poly_num_cb"> Show Numbers</label></fieldset></div>
     <div id="opt_radar" style="display:none;"><fieldset><input type="checkbox" id="radar_clock_cb" onchange="generate_grid()" checked><label for="radar_clock_cb"> Show Clock Guide</label></fieldset></div>
