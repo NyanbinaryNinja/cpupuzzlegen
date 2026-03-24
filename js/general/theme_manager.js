@@ -22,7 +22,6 @@ class theme_manager {
       c_sec = '#fff';
       c_drk = 'rgba(255,255,255,0.2)';
       c_lgt = '#fff';
-      document.body.style.color = '#ee82ee';
       canvas_el.style.boxShadow = `0 0 20px rgba(255,255,255,0.2)`;
     } else {
       let r = parseInt(hex.slice(1, 3), 16) || 0;
@@ -33,7 +32,6 @@ class theme_manager {
       c_a2 = `rgba(${r},${g},${b},0.2)`;
       c_drk = `rgba(${Math.floor(r * 0.25)},${Math.floor(g * 0.25)},${Math.floor(b * 0.25)},1)`;
       c_lgt = `rgba(${Math.floor(r + (255 - r) * .8)},${Math.floor(g + (255 - g) * .8)},${Math.floor(b + (255 - b) * .8)},1)`;
-      document.body.style.color = c_main;
       canvas_el.style.boxShadow = `0 0 20px rgba(${r},${g},${b},0.2)`;
     }
     return { c_main, c_a1, c_a2, c_sec, c_drk, c_lgt };
