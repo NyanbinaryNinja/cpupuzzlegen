@@ -17,7 +17,7 @@ let current_cipher = null;
 let anim_frame = null;
 
 window.generate_grid = function() {
-  let c_type = document.getElementById('cipher_type').value;
+  let c_type = document.getElementById('cipher_select').value;
   let input_val = input_box.value;
   document.getElementById('opt_poly').style.display = c_type === 'poly' ? 'block' : 'none';
   document.getElementById('opt_radar').style.display = c_type === 'radar' ? 'block' : 'none';
