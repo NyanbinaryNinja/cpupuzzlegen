@@ -6,6 +6,7 @@
 <script src="js/general/theme_manager.js"></script>
 <script src="js/general/gif_generator.js"></script>
 <script src="js/general/grid_maker.js"></script>
+<script src="js/general/effects.js"></script>
 <script src="js/general/flag_generator.js"></script>
 <script src="js/general/window_manager.js"></script>
 
@@ -24,7 +25,7 @@
 
 </head>
 <body>
-<div class="window" style="position:absolute;top:20px;left:20px;width:300px;">
+<div class="window flag-window">
   <div class="title-bar">
     <div class="title-bar-text">Flag Generator</div>
     <div class="title-bar-controls">
@@ -34,15 +35,15 @@
     </div>
   </div>
   <div class="window-body">
-    <fieldset style="margin-bottom: 5px;"><label for="prefix_input">Prefix:</label><input type="text" id="prefix_input" value=""></fieldset>
-    <fieldset style="margin-bottom: 5px;"><label for="flag_input">Flag:</label><input type="text" id="flag_input" value=""></fieldset>
-    <fieldset style="margin-bottom: 5px;"><button onclick="generate_custom_flag()">Generate Flag</button></fieldset>
-    <fieldset style="margin-bottom: 5px;"><label for="flag_output">Output:</label><input type="text" id="flag_output" readonly></fieldset>
+    <fieldset class="mb-5"><label for="prefix_input">Prefix:</label><input type="text" id="prefix_input" value=""></fieldset>
+    <fieldset class="mb-5"><label for="flag_input">Flag:</label><input type="text" id="flag_input" value=""></fieldset>
+    <fieldset class="mb-5"><button onclick="generate_custom_flag()">Generate Flag</button></fieldset>
+    <fieldset class="mb-5"><label for="flag_output">Output:</label><input type="text" id="flag_output" readonly></fieldset>
     <fieldset><input type="checkbox" id="add_to_cipher_cb"><label for="add_to_cipher_cb"> Add to cipher input</label></fieldset>
   </div>
   <div class="resizer" aria-label="Resize window"></div>
 </div>
-<div class="window" style="position:absolute;top:80px;left:50%;transform:translateX(-50%);width:360px;">
+<div class="window controls-window">
   <div class="title-bar">
     <div class="title-bar-text">Controls</div>
     <div class="title-bar-controls">
@@ -51,10 +52,10 @@
       <button aria-label="Close"></button>
     </div>
   </div>
-  <div class="window-body" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
-    <fieldset style="margin-bottom: 15px; border: 1px solid gray; padding: 10px; width: 90%; text-align: center;">
-      <label for="cipher_select" style="display: inline-block; margin-right: 10px;">Cipher Type:</label>
-      <select id="cipher_select" onchange="generate_grid()" style="width: 180px; display: inline-block; vertical-align: middle;">
+  <div class="window-body controls-body">
+    <fieldset class="control-fieldset text-center">
+      <label for="cipher_select" class="inline-label">Cipher Type:</label>
+      <select id="cipher_select" onchange="generate_grid()" class="cipher-select">
         <option value="poly">Polybius Square</option>
         <option value="pig">Pigpen Cipher</option>
         <option value="radar">Radar</option>
@@ -62,17 +63,17 @@
         <option value="maze">Maze</option>
       </select>
     </fieldset>
-    <fieldset style="margin-bottom: 15px; border: 1px solid gray; padding: 10px; width: 90%;">
-      <input id="input_box" value="" placeholder="Enter text here..." style="width: 100%; box-sizing: border-box;">
+    <fieldset class="control-fieldset">
+      <input id="input_box" value="" placeholder="Enter text here..." class="w-100 box-border">
     </fieldset>
-    <fieldset style="border: 1px solid gray; padding: 10px; width: 90%; display: flex; justify-content: center; gap: 15px;">
+    <fieldset class="control-fieldset flex-center gap-15">
       <button onclick="generate_grid()">Generate Grid</button>
       <button id="rec_btn" onclick="start_recording()">Record File</button>
     </fieldset>
   </div>
   <div class="resizer" aria-label="Resize window"></div>
 </div>
-<div class="window" style="position:absolute;top:20px;right:20px;width:300px;">
+<div class="window options-window">
   <div class="title-bar">
     <div class="title-bar-text">Options</div>
     <div class="title-bar-controls">
@@ -82,9 +83,9 @@
     </div>
   </div>
   <div class="window-body">
-    <fieldset style="margin-bottom:10px; display: flex; align-items: center; gap: 10px;">
+    <fieldset class="options-theme-fieldset">
       <label for="theme_sel">Theme:</label>
-      <select id="theme_sel" onchange="document.getElementById('c_pick').style.display=this.value=='6'?'inline-block':'none'" style="display: inline-block; vertical-align: middle;">
+      <select id="theme_sel" onchange="document.getElementById('c_pick').style.display=this.value=='6'?'inline-block':'none'" class="theme-select">
         <option value="1">Neon Green</option>
         <option value="2">Gold (Winton)</option>
         <option value="3">Dark Red (Remed)</option>
@@ -92,13 +93,62 @@
         <option value="5">Rainbow Gradient (Moggers)</option>
         <option value="6">Colour Picker</option>
       </select>
-      <input type="color" id="c_pick" value="#00ff44" style="display:none;height:22px;padding:0;border:none;vertical-align: middle;width:50%;">
+      <input type="color" id="c_pick" value="#00ff44" class="color-picker" style="display:none;">
     </fieldset>
     <div id="opt_poly" style="display:none;"><fieldset><input type="checkbox" id="poly_num_cb" onchange="generate_grid()" checked><label for="poly_num_cb"> Show Numbers</label></fieldset></div>
     <div id="opt_radar" style="display:none;"><fieldset><input type="checkbox" id="radar_clock_cb" onchange="generate_grid()" checked><label for="radar_clock_cb"> Show Clock Guide</label></fieldset></div>
     <div id="opt_circuit" style="display:none;"><fieldset><input type="checkbox" id="circuit_legend_cb" onchange="generate_grid()" checked><label for="circuit_legend_cb"> Show Legend</label></fieldset></div>
     <div id="opt_maze" style="display:none;"><fieldset><input type="checkbox" id="maze_axes_cb" onchange="generate_grid()" checked><label for="maze_axes_cb"> Show Axes & Labels</label></fieldset></div>
     <div><fieldset><input type="checkbox" id="split_cb"><label for="split_cb"> Split Key & Grid</label></fieldset></div>
+  </div>
+  <div class="resizer" aria-label="Resize window"></div>
+</div>
+<div class="window effects-window">
+  <div class="title-bar">
+    <div class="title-bar-text">Effects</div>
+    <div class="title-bar-controls">
+      <button aria-label="Minimize"></button>
+      <button aria-label="Maximize"></button>
+      <button aria-label="Close"></button>
+    </div>
+  </div>
+  <div class="window-body">
+    <fieldset class="mb-5">
+      <legend>Preset Code</legend>
+      <input type="text" id="fx_code" value="0|2|0|0.1|0|5|0|0.05|1|1|1|1|0|0.5|0|5" class="w-100" oninput="fx.load_code(this.value)">
+    </fieldset>
+    <fieldset class="fx-fieldset">
+      <div class="fx-group"><input type="checkbox" id="fx_rgb_en" onchange="fx.update_cfg()"><label for="fx_rgb_en">RGB Split</label></div>
+      <div class="fx-group"><input type="range" id="fx_rgb_sld" min="0" max="10" step="0.1" value="2" disabled oninput="fx.sync_inputs(this)" class="fx-slider"><input type="number" id="fx_rgb_num" min="0" max="10" step="0.1" value="2" disabled oninput="fx.sync_inputs(this)" class="fx-number"></div>
+    </fieldset>
+    <fieldset class="fx-fieldset">
+      <div class="fx-group"><input type="checkbox" id="fx_noise_en" onchange="fx.update_cfg()"><label for="fx_noise_en">Static Noise</label></div>
+      <div class="fx-group"><input type="range" id="fx_noise_sld" min="0" max="1" step="0.01" value="0.1" disabled oninput="fx.sync_inputs(this)" class="fx-slider"><input type="number" id="fx_noise_num" min="0" max="1" step="0.01" value="0.1" disabled oninput="fx.sync_inputs(this)" class="fx-number"></div>
+    </fieldset>
+    <fieldset class="fx-fieldset">
+      <div class="fx-group"><input type="checkbox" id="fx_track_en" onchange="fx.update_cfg()"><label for="fx_track_en">Tracking Glitch</label></div>
+      <div class="fx-group"><input type="range" id="fx_track_sld" min="0" max="20" step="1" value="5" disabled oninput="fx.sync_inputs(this)" class="fx-slider"><input type="number" id="fx_track_num" min="0" max="20" step="1" value="5" disabled oninput="fx.sync_inputs(this)" class="fx-number"></div>
+    </fieldset>
+    <fieldset class="fx-fieldset">
+      <div class="fx-group"><input type="checkbox" id="fx_stut_en" onchange="fx.update_cfg()"><label for="fx_stut_en">Frame Stutter</label></div>
+      <div class="fx-group"><input type="range" id="fx_stut_sld" min="0" max="1" step="0.01" value="0.05" disabled oninput="fx.sync_inputs(this)" class="fx-slider"><input type="number" id="fx_stut_num" min="0" max="1" step="0.01" value="0.05" disabled oninput="fx.sync_inputs(this)" class="fx-number"></div>
+    </fieldset>
+    <fieldset class="fx-fieldset">
+      <div class="fx-group"><input type="checkbox" id="fx_grid_en" checked onchange="fx.update_cfg()"><label for="fx_grid_en">Background Grid</label></div>
+      <div class="fx-group"><input type="range" id="fx_grid_sld" min="0" max="1" step="0.1" value="1" oninput="fx.sync_inputs(this)" class="fx-slider"><input type="number" id="fx_grid_num" min="0" max="1" step="0.1" value="1" oninput="fx.sync_inputs(this)" class="fx-number"></div>
+    </fieldset>
+    <fieldset class="fx-fieldset">
+      <div class="fx-group"><input type="checkbox" id="fx_scan_en" checked onchange="fx.update_cfg()"><label for="fx_scan_en">Moving Scanbar</label></div>
+      <div class="fx-group"><input type="range" id="fx_scan_sld" min="0" max="1" step="0.1" value="1" oninput="fx.sync_inputs(this)" class="fx-slider"><input type="number" id="fx_scan_num" min="0" max="1" step="0.1" value="1" oninput="fx.sync_inputs(this)" class="fx-number"></div>
+    </fieldset>
+    <fieldset class="fx-fieldset">
+      <div class="fx-group"><input type="checkbox" id="fx_vig_en" onchange="fx.update_cfg()"><label for="fx_vig_en">Vignette</label></div>
+      <div class="fx-group"><input type="range" id="fx_vig_sld" min="0" max="1" step="0.1" value="0.5" disabled oninput="fx.sync_inputs(this)" class="fx-slider"><input type="number" id="fx_vig_num" min="0" max="1" step="0.1" value="0.5" disabled oninput="fx.sync_inputs(this)" class="fx-number"></div>
+    </fieldset>
+    <fieldset class="fx-fieldset">
+      <div class="fx-group"><input type="checkbox" id="fx_bloom_en" onchange="fx.update_cfg()"><label for="fx_bloom_en">Bloom Glow</label></div>
+      <div class="fx-group"><input type="range" id="fx_bloom_sld" min="0" max="20" step="1" value="5" disabled oninput="fx.sync_inputs(this)" class="fx-slider"><input type="number" id="fx_bloom_num" min="0" max="20" step="1" value="5" disabled oninput="fx.sync_inputs(this)" class="fx-number"></div>
+    </fieldset>
   </div>
   <div class="resizer" aria-label="Resize window"></div>
 </div>

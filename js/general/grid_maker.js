@@ -8,20 +8,28 @@ class grid_maker {
   draw_background(colors) {
     this.ctx.fillStyle = '#050505';
     this.ctx.fillRect(0, 0, this.canvas_el.width, this.canvas_el.height);
-    for (let i = 0; i < this.canvas_el.height; i += 4) {
-      this.ctx.fillStyle = colors.c_a1;
-      this.ctx.fillRect(0, i, this.canvas_el.width, 1);
+    if (window.fx && window.fx.cfg.grid_en) {
+      this.ctx.globalAlpha = window.fx.cfg.grid_v;
+      for (let i = 0; i < this.canvas_el.height; i += 4) {
+        this.ctx.fillStyle = colors.c_a1;
+        this.ctx.fillRect(0, i, this.canvas_el.width, 1);
+      }
+      this.ctx.globalAlpha = 1;
     }
   }
 
   draw_scanline(colors, split_mode, split_y) {
-    this.ctx.fillStyle = colors.c_a2;
     let reset_happened = false;
-    if (split_mode) {
-      this.ctx.fillRect(0, this.scan_p * split_y, this.canvas_el.width, 5);
-      this.ctx.fillRect(0, split_y + this.scan_p * (this.canvas_el.height - split_y), this.canvas_el.width, 5);
-    } else {
-      this.ctx.fillRect(0, this.scan_p * this.canvas_el.height, this.canvas_el.width, 5);
+    if (window.fx && window.fx.cfg.scan_en) {
+      this.ctx.globalAlpha = window.fx.cfg.scan_v;
+      this.ctx.fillStyle = colors.c_a2;
+      if (split_mode) {
+        this.ctx.fillRect(0, this.scan_p * split_y, this.canvas_el.width, 5);
+        this.ctx.fillRect(0, split_y + this.scan_p * (this.canvas_el.height - split_y), this.canvas_el.width, 5);
+      } else {
+        this.ctx.fillRect(0, this.scan_p * this.canvas_el.height, this.canvas_el.width, 5);
+      }
+      this.ctx.globalAlpha = 1;
     }
     this.scan_p += 2 / this.canvas_el.height;
     if (this.scan_p >= 1) {

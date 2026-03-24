@@ -6,6 +6,8 @@ const split_cb = document.getElementById('split_cb');
 
 const recorder = new gif_generator(canvas_el, rec_btn);
 const grid_manager = new grid_maker(canvas_el, ctx);
+const fx = new effects_manager(canvas_el, ctx);
+window.fx = fx;
 
 const ciphers = {
   'poly': new polybius_cipher(canvas_el, ctx),
@@ -45,9 +47,11 @@ function draw_frame() {
   }
   recorder.check_start(grid_manager.scan_p);
   let reset_happened = grid_manager.draw_scanline(colors, split_cb.checked, current_cipher ? current_cipher.split_y : 0);
+  fx.apply_effects();
   recorder.capture_frame();
   recorder.check_stop(reset_happened);
   anim_frame = requestAnimationFrame(draw_frame);
 }
 
 window.generate_grid();
+fx.init_ui();
