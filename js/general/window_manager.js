@@ -30,12 +30,17 @@
       l=snap_edge(l,window.innerWidth-start_w); t=snap_edge(t,window.innerHeight-start_h);
       const R={left:l,right:l+start_w,top:t,bottom:t+start_h};
       if(rects_intersect(R,canvas)){
-        if(start_top+start_h<=canvas.top) t=canvas.top-start_h-10;
-        else if(start_top>=canvas.bottom) t=canvas.bottom+10;
-        else if(start_left+start_w<=canvas.left) l=canvas.left-start_w-10;
-        else if(start_left>=canvas.right) l=canvas.right+10;
+        const over_l = R.right - canvas.left;
+        const over_r = canvas.right - R.left;
+        const over_t = R.bottom - canvas.top;
+        const over_b = canvas.bottom - R.top;
+        const min_over = Math.min(over_l, over_r, over_t, over_b);
+        if(min_over===over_l) l = canvas.left - start_w - 10;
+        else if(min_over===over_r) l = canvas.right + 10;
+        else if(min_over===over_t) t = canvas.top - start_h - 10;
+        else if(min_over===over_b) t = canvas.bottom + 10;
       }
-      active.style.left=l+'px'; active.style.top=t+'px';
+      active.style.left=clamp_scalar(l,0,window.innerWidth-start_w)+'px'; active.style.top=clamp_scalar(t,0,window.innerHeight-start_h)+'px';
     } else if(mode==='resize'){
       let l=start_left,t=start_top,w=start_w,h=start_h;
       if(dir.includes('r')) w=clamp_scalar(Math.max(100,start_w+dx),100,window.innerWidth-start_left);
