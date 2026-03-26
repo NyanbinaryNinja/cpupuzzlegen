@@ -86,7 +86,7 @@ class pigpen_cipher {
         if (i > 21) { dt = true; dx = gx + (p === 1 ? 10 : p === 3 ? -10 : 0); dy = gy + (p === 0 ? -10 : p === 2 ? 10 : 0); }
       }
       this.ctx.fillStyle = colors.c_main;
-      this.ctx.fillText(this.char_pool[i] || '', cx, cy + 8);
+      this.ctx.fillText(this.char_pool[i] || '', cx, cy);
       if (dt) this.ctx.fillRect(dx - 2, dy - 2, 4, 4);
     }
   }
