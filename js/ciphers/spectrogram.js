@@ -1,8 +1,9 @@
 const spectrogram = {
     f: null,
     i: null,
+    split_y: 0,
     init() {
-        let c = document.querySelector("#controls"), i = document.createElement("input");
+        let c = document.querySelector("#input_box").parentElement, i = document.createElement("input"), v = document.createElement("canvas");
         i.type = "file";
         i.accept = "image/*";
         i.id = "sg-f";
@@ -15,10 +16,13 @@ const spectrogram = {
             }
         };
         c.appendChild(i);
+        v.width = 600; v.height = 200; v.style.cssText = "display:none;width:100%;height:auto;margin-top:8px";
+        c.appendChild(v);
         this.f = i;
+        this.v = v;
     },
-    show() { if (this.f) this.f.style.display = "block"; },
-    hide() { if (this.f) this.f.style.display = "none"; },
+    show() { if (this.f) this.f.style.display = "inline-block"; },
+    hide() { if (this.f) this.f.style.display = "none"; if (this.v) this.v.style.display = "none"; },
     async gen(t) {
         let w = 600, h = 200, c = document.createElement("canvas"), x = c.getContext("2d");
         c.width = w; c.height = h;
@@ -34,6 +38,8 @@ const spectrogram = {
             }
         });
         let d = x.getImageData(0, 0, w, h).data, sr = 44100, dr = 3, ac = new OfflineAudioContext(1, sr * dr, sr), b = ac.createBuffer(1, sr * dr, sr), cd = b.getChannelData(0);
+        this.v.style.display = "block";
+        this.v.getContext("2d").drawImage(c, 0, 0);
         for (let i = 0; i < w; i++) {
             let ts = Math.floor((i / w) * sr * dr), te = Math.floor(((i + 1) / w) * sr * dr);
             for (let j = 0; j < h; j++) {
@@ -53,7 +59,12 @@ const spectrogram = {
         ws("data", 36); v.setUint32(40, l * 2, true);
         let fcd = rb.getChannelData(0);
         for (let i = 0; i < l; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, fcd[i])) * 32767, true);
-        let u = URL.createObjectURL(new Blob([ba], { type: "audio/wav" })), a = document.createElement("a");
+        this.b = new Blob([ba], { type: "audio/wav" });
+    },
+    save() {
+        if (!this.b) return;
+        let u = URL.createObjectURL(this.b), a = document.createElement("a");
         a.href = u; a.download = "spectrogram.wav"; a.click();
-    }
+    },
+    draw() {}
 };

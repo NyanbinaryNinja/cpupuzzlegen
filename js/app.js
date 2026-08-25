@@ -29,8 +29,8 @@ window.generate_grid = async function() {
   document.getElementById('opt_radar').style.display = c_type === 'radar' ? 'block' : 'none';
   document.getElementById('opt_maze').style.display = c_type === 'maze' ? 'block' : 'none';
   c_type === 'spectrogram' ? spectrogram.show() : spectrogram.hide();
-  rec_btn.disabled = c_type === 'spectrogram';
-  if (c_type === 'spectrogram') { current_cipher = null; return await spectrogram.gen(input_val); }
+  rec_btn.disabled = false;
+  if (c_type === 'spectrogram') { current_cipher = spectrogram; return await spectrogram.gen(input_val); }
   current_cipher = ciphers[c_type];
   current_cipher.generate(input_val);
   if (!anim_frame) {
@@ -39,6 +39,7 @@ window.generate_grid = async function() {
 };
 
 window.start_recording = function() {
+  if (current_cipher === spectrogram) return spectrogram.save();
   recorder.start_recording(split_cb.checked, current_cipher.split_y);
 };
 
