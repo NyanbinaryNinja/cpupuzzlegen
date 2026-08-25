@@ -3,10 +3,13 @@ const spectrogram = {
     i: null,
     split_y: 0,
     init() {
-        let c = document.querySelector("#input_box").parentElement, r = document.createElement("div"), i = document.createElement("input"), n = document.createElement("span"), v = document.createElement("canvas"), a = document.createElement("audio");
+        let c = document.querySelector("#input_box").parentElement, r = document.createElement("div"), i = document.createElement("input"), l = document.createElement("label"), n = document.createElement("span"), v = document.createElement("canvas"), a = document.createElement("audio");
         i.type = "file";
         i.accept = "image/*";
         i.id = "sg-f";
+        i.style.display = "none";
+        l.textContent = "Choose Image";
+        l.htmlFor = "sg-f";
         n.textContent = "No image selected";
         n.style.marginLeft = "8px";
         i.onchange = (e) => {
@@ -18,10 +21,11 @@ const spectrogram = {
             }
         };
         r.style.cssText = "display:none;width:100%;margin-top:8px";
-        r.append(i, n); c.appendChild(r);
+        r.append(i, l, n); c.parentElement.insertBefore(r, c.nextSibling);
         v.width = 600; v.height = 200; v.style.cssText = "display:none;width:100%;height:auto;margin-top:8px";
         a.controls = true; a.style.cssText = "display:none;width:100%;margin-top:8px";
-        c.append(v, a);
+        c.parentElement.insertBefore(v, r.nextSibling);
+        c.parentElement.insertBefore(a, v.nextSibling);
         this.r = r;
         this.f = i;
         this.v = v;
@@ -44,6 +48,9 @@ const spectrogram = {
             }
         });
         let d = x.getImageData(0, 0, w, h).data, sr = 44100, dr = 3, ac = new OfflineAudioContext(1, sr * dr, sr), b = ac.createBuffer(1, sr * dr, sr), cd = b.getChannelData(0);
+        this.canvas_el.width = w;
+        this.canvas_el.height = h;
+        this.split_y = h;
         this.v.style.display = "block";
         this.v.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(d), w, h), 0, 0);
         for (let i = 0; i < w; i++) {
@@ -74,5 +81,5 @@ const spectrogram = {
         let u = URL.createObjectURL(this.b), a = document.createElement("a");
         a.href = u; a.download = "spectrogram.wav"; a.click();
     },
-    draw() {}
+    draw() { if (this.v) this.ctx.drawImage(this.v, 0, 0, this.canvas_el.width, this.canvas_el.height); }
 };
