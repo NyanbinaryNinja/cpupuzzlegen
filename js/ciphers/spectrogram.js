@@ -3,26 +3,32 @@ const spectrogram = {
     i: null,
     split_y: 0,
     init() {
-        let c = document.querySelector("#input_box").parentElement, i = document.createElement("input"), v = document.createElement("canvas");
+        let c = document.querySelector("#input_box").parentElement, r = document.createElement("div"), i = document.createElement("input"), n = document.createElement("span"), v = document.createElement("canvas"), a = document.createElement("audio");
         i.type = "file";
         i.accept = "image/*";
         i.id = "sg-f";
-        i.style.display = "none";
+        n.textContent = "No image selected";
+        n.style.marginLeft = "8px";
         i.onchange = (e) => {
             if (e.target.files[0]) {
                 let r = new FileReader();
+                n.textContent = e.target.files[0].name;
                 r.onload = (v) => this.i = v.target.result;
                 r.readAsDataURL(e.target.files[0]);
             }
         };
-        c.appendChild(i);
+        r.style.cssText = "display:none;width:100%;margin-top:8px";
+        r.append(i, n); c.appendChild(r);
         v.width = 600; v.height = 200; v.style.cssText = "display:none;width:100%;height:auto;margin-top:8px";
-        c.appendChild(v);
+        a.controls = true; a.style.cssText = "display:none;width:100%;margin-top:8px";
+        c.append(v, a);
+        this.r = r;
         this.f = i;
         this.v = v;
+        this.a = a;
     },
-    show() { if (this.f) this.f.style.display = "inline-block"; },
-    hide() { if (this.f) this.f.style.display = "none"; if (this.v) this.v.style.display = "none"; },
+    show() { if (this.r) this.r.style.display = "block"; },
+    hide() { if (this.r) this.r.style.display = "none"; if (this.v) this.v.style.display = "none"; if (this.a) this.a.style.display = "none"; },
     async gen(t) {
         let w = 600, h = 200, c = document.createElement("canvas"), x = c.getContext("2d");
         c.width = w; c.height = h;
@@ -39,7 +45,7 @@ const spectrogram = {
         });
         let d = x.getImageData(0, 0, w, h).data, sr = 44100, dr = 3, ac = new OfflineAudioContext(1, sr * dr, sr), b = ac.createBuffer(1, sr * dr, sr), cd = b.getChannelData(0);
         this.v.style.display = "block";
-        this.v.getContext("2d").drawImage(c, 0, 0);
+        this.v.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(d), w, h), 0, 0);
         for (let i = 0; i < w; i++) {
             let ts = Math.floor((i / w) * sr * dr), te = Math.floor(((i + 1) / w) * sr * dr);
             for (let j = 0; j < h; j++) {
@@ -60,6 +66,8 @@ const spectrogram = {
         let fcd = rb.getChannelData(0);
         for (let i = 0; i < l; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, fcd[i])) * 32767, true);
         this.b = new Blob([ba], { type: "audio/wav" });
+        this.a.src = URL.createObjectURL(this.b);
+        this.a.style.display = "block";
     },
     save() {
         if (!this.b) return;
