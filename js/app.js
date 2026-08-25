@@ -28,6 +28,7 @@ window.generate_grid = function() {
   document.getElementById('opt_radar').style.display = c_type === 'radar' ? 'block' : 'none';
   document.getElementById('opt_maze').style.display = c_type === 'maze' ? 'block' : 'none';
   Object.keys(ciphers).forEach(k => ciphers[k].set_active && ciphers[k].set_active(k === c_type));
+  rec_btn.innerText = c_type === 'spectrogram' ? 'Save Audio File' : 'Record File';
   current_cipher = ciphers[c_type];
   current_cipher.generate(input_val);
   if (!anim_frame) {
@@ -36,6 +37,7 @@ window.generate_grid = function() {
 };
 
 window.start_recording = function() {
+  if (current_cipher === ciphers.spectrogram) return current_cipher.save_file();
   recorder.start_recording(split_cb.checked, current_cipher.split_y);
 };
 
