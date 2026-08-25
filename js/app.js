@@ -20,7 +20,7 @@ const ciphers = {
 let current_cipher = null;
 let anim_frame = null;
 
-spectrogram.init();
+spectrogram.init(canvas_el, ctx);
 
 window.generate_grid = async function() {
   let c_type = document.getElementById('cipher_select').value;
@@ -30,7 +30,18 @@ window.generate_grid = async function() {
   document.getElementById('opt_maze').style.display = c_type === 'maze' ? 'block' : 'none';
   c_type === 'spectrogram' ? spectrogram.show() : spectrogram.hide();
   rec_btn.disabled = false;
-  if (c_type === 'spectrogram') { current_cipher = spectrogram; rec_btn.disabled = true; await spectrogram.gen(input_val); rec_btn.disabled = false; return; }
+  if (c_type === 'spectrogram') {
+    current_cipher = spectrogram;
+    rec_btn.disabled = true;
+    try {
+      await spectrogram.gen(input_val);
+    } catch (error) {
+      console.error('Unable to generate spectrogram:', error);
+    } finally {
+      rec_btn.disabled = false;
+    }
+    return;
+  }
   current_cipher = ciphers[c_type];
   current_cipher.generate(input_val);
   if (!anim_frame) {
