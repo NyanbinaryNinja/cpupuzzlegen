@@ -14,21 +14,23 @@ const ciphers = {
   'pig': new pigpen_cipher(canvas_el, ctx),
   'radar': new radar_cipher(canvas_el, ctx),
   'circuit': new circuit_cipher(canvas_el, ctx),
-  'maze': new maze_cipher(canvas_el, ctx),
-  'spectrogram': new spectrogram_cipher(canvas_el, ctx)
+  'maze': new maze_cipher(canvas_el, ctx)
 };
 
 let current_cipher = null;
 let anim_frame = null;
 
-window.generate_grid = function() {
+spectrogram.init();
+
+window.generate_grid = async function() {
   let c_type = document.getElementById('cipher_select').value;
   let input_val = input_box.value;
   document.getElementById('opt_poly').style.display = c_type === 'poly' ? 'block' : 'none';
   document.getElementById('opt_radar').style.display = c_type === 'radar' ? 'block' : 'none';
   document.getElementById('opt_maze').style.display = c_type === 'maze' ? 'block' : 'none';
-  Object.keys(ciphers).forEach(k => ciphers[k].set_active && ciphers[k].set_active(k === c_type));
-  rec_btn.innerText = c_type === 'spectrogram' ? 'Save Audio File' : 'Record File';
+  c_type === 'spectrogram' ? spectrogram.show() : spectrogram.hide();
+  rec_btn.disabled = c_type === 'spectrogram';
+  if (c_type === 'spectrogram') { current_cipher = null; return await spectrogram.gen(input_val); }
   current_cipher = ciphers[c_type];
   current_cipher.generate(input_val);
   if (!anim_frame) {
@@ -37,7 +39,6 @@ window.generate_grid = function() {
 };
 
 window.start_recording = function() {
-  if (current_cipher === ciphers.spectrogram) return current_cipher.save_file();
   recorder.start_recording(split_cb.checked, current_cipher.split_y);
 };
 
