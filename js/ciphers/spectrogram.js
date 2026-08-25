@@ -7,9 +7,31 @@ const spectrogram = {
     analyser: null,
     frequency_data: null,
     init(canvas_el, ctx) {
-        let a = document.createElement("audio");
+        let c = document.querySelector("#input_box").parentElement, r = document.createElement("div"), i = document.createElement("input"), l = document.createElement("button"), n = document.createElement("span"), a = document.createElement("audio");
+        i.type = "file";
+        i.accept = "image/*";
+        i.id = "sg-f";
+        i.style.display = "none";
+        l.type = "button";
+        l.textContent = "Upload Image";
+        l.onclick = () => i.click();
+        n.textContent = "No image selected";
+        n.style.marginLeft = "8px";
+        i.onchange = (event) => {
+            if (event.target.files[0]) {
+                let reader = new FileReader();
+                n.textContent = event.target.files[0].name;
+                reader.onload = (result) => this.i = result.target.result;
+                reader.readAsDataURL(event.target.files[0]);
+            }
+        };
+        r.style.cssText = "display:none;width:100%;margin-top:8px";
+        r.append(i, l, n);
+        c.parentElement.insertBefore(r, c.nextSibling);
         a.controls = true; a.preload = "metadata"; a.style.cssText = "display:none;width:100%;margin-top:8px";
         canvas_el.parentElement.insertBefore(a, canvas_el.nextSibling);
+        this.r = r;
+        this.f = i;
         this.a = a;
         this.canvas_el = canvas_el;
         this.ctx = ctx;
@@ -20,21 +42,30 @@ const spectrogram = {
         this.audio_ctx.createMediaElementSource(a).connect(this.analyser).connect(this.audio_ctx.destination);
         a.onplay = () => this.audio_ctx.resume();
     },
-    show() {},
-    hide() { if (this.a) this.a.style.display = "none"; },
+    show() { if (this.r) this.r.style.display = "block"; },
+    hide() { if (this.r) this.r.style.display = "none"; if (this.a) this.a.style.display = "none"; },
     async gen(t) {
         let w = 600, h = 200, c = document.createElement("canvas"), x = c.getContext("2d");
         this.b = null;
         c.width = w; c.height = h;
         x.fillStyle = "#000"; x.fillRect(0, 0, w, h);
-        await new Promise((resolve) => {
-            x.fillStyle = "#fff"; x.font = "40px sans-serif";
-            x.fillText(t, 10, h / 2); resolve();
+        await new Promise((resolve, reject) => {
+            if (this.i) {
+                let image = new Image();
+                image.onload = () => { x.drawImage(image, 0, 0, w, h); resolve(); };
+                image.onerror = () => reject(new Error("Unable to load the selected image."));
+                image.src = this.i;
+            } else {
+                x.fillStyle = "#fff"; x.font = "40px sans-serif";
+                x.fillText(t, 10, h / 2); resolve();
+            }
         });
         let d = x.getImageData(0, 0, w, h).data, sr = 44100, dr = 3, ac = new OfflineAudioContext(1, sr * dr, sr);
         this.canvas_el.width = w;
         this.canvas_el.height = h;
         this.split_y = h;
+        this.ctx.fillStyle = "#050505";
+        this.ctx.fillRect(0, 0, w, h);
         for (let j = 0; j < h; j += 2) {
             let o = ac.createOscillator(), g = ac.createGain(), f = 20000 - (j / h) * 20000;
             o.frequency.value = f; g.gain.setValueAtTime(0, 0);
@@ -66,13 +97,13 @@ const spectrogram = {
     draw() {
         if (this.analyser && this.ctx && this.canvas_el) {
             this.analyser.getByteFrequencyData(this.frequency_data);
-            this.ctx.fillStyle = "#050505";
-            this.ctx.fillRect(0, 0, this.canvas_el.width, this.canvas_el.height);
-            this.ctx.fillStyle = "#00ff66";
-            let bar_width = this.canvas_el.width / this.frequency_data.length;
-            for (let i = 0; i < this.frequency_data.length; i++) {
-                let bar_height = this.frequency_data[i] / 255 * this.canvas_el.height;
-                this.ctx.fillRect(i * bar_width, this.canvas_el.height - bar_height, Math.max(1, bar_width), bar_height);
+            let width = this.canvas_el.width, height = this.canvas_el.height;
+            this.ctx.drawImage(this.canvas_el, -1, 0);
+            for (let y = 0; y < height; y++) {
+                let index = Math.floor((height - 1 - y) / height * this.frequency_data.length);
+                let intensity = this.frequency_data[index];
+                this.ctx.fillStyle = `hsl(${240 - intensity / 255 * 240}, 100%, ${Math.max(8, intensity / 2)}%)`;
+                this.ctx.fillRect(width - 1, y, 1, 1);
             }
         }
     }
