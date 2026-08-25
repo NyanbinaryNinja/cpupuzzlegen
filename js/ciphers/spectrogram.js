@@ -36,6 +36,7 @@ const spectrogram = {
     hide() { if (this.r) this.r.style.display = "none"; if (this.v) this.v.style.display = "none"; if (this.a) this.a.style.display = "none"; },
     async gen(t) {
         let w = 600, h = 200, c = document.createElement("canvas"), x = c.getContext("2d");
+        this.b = null;
         c.width = w; c.height = h;
         x.fillStyle = "#000"; x.fillRect(0, 0, w, h);
         await new Promise((r) => {
@@ -48,23 +49,20 @@ const spectrogram = {
                 x.fillText(t, 10, h / 2); r();
             }
         });
-        let d = x.getImageData(0, 0, w, h).data, sr = 44100, dr = 3, ac = new OfflineAudioContext(1, sr * dr, sr), b = ac.createBuffer(1, sr * dr, sr), cd = b.getChannelData(0);
+        let d = x.getImageData(0, 0, w, h).data, sr = 44100, dr = 3, ac = new OfflineAudioContext(1, sr * dr, sr);
         this.canvas_el.width = w;
         this.canvas_el.height = h;
         this.split_y = h;
         this.v.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(d), w, h), 0, 0);
-        for (let i = 0; i < w; i++) {
-            let ts = Math.floor((i / w) * sr * dr), te = Math.floor(((i + 1) / w) * sr * dr);
-            for (let j = 0; j < h; j++) {
+        for (let j = 0; j < h; j += 2) {
+            let o = ac.createOscillator(), g = ac.createGain(), f = 20000 - (j / h) * 20000;
+            o.frequency.value = f; g.gain.setValueAtTime(0, 0);
+            for (let i = 0; i < w; i++) {
                 let q = (d[(j * w + i) * 4] + d[(j * w + i) * 4 + 1] + d[(j * w + i) * 4 + 2]) / 765;
-                if (q > 0.05) {
-                    let f = 20000 - (j / h) * 20000;
-                    for (let k = ts; k < te; k++) cd[k] += Math.sin(2 * Math.PI * f * (k / sr)) * (q / h);
-                }
+                g.gain.setValueAtTime(q / h * 2, i / w * dr);
             }
+            o.connect(g).connect(ac.destination); o.start(); o.stop(dr);
         }
-        let s = ac.createBufferSource();
-        s.buffer = b; s.connect(ac.destination); s.start();
         let rb = await ac.startRendering(), l = rb.length, ch = rb.numberOfChannels, ba = new ArrayBuffer(44 + l * 2), v = new DataView(ba), ws = (str, o) => { for (let k = 0; k < str.length; k++) v.setUint8(o + k, str.charCodeAt(k)); };
         ws("RIFF", 0); v.setUint32(4, 36 + l * 2, true); ws("WAVEfmt ", 8); v.setUint32(16, 16, true);
         v.setUint16(20, 1, true); v.setUint16(22, ch, true); v.setUint32(24, sr, true);
