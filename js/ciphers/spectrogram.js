@@ -8,7 +8,7 @@ const spectrogram = {
     frequency_data: null,
     use_image: false,
     init(canvas_el, ctx) {
-        let c = document.querySelector("#input_box").parentElement, r = document.createElement("div"), i = document.createElement("input"), l = document.createElement("button"), n = document.createElement("span"), a = document.createElement("audio");
+        let c = document.querySelector("#input_box").parentElement, r = document.createElement("fieldset"), i = document.createElement("input"), l = document.createElement("button"), n = document.createElement("span"), a = document.createElement("audio");
         i.type = "file";
         i.accept = "image/*";
         i.id = "sg-f";
