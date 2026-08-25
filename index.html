@@ -15,6 +15,7 @@
 <script src="js/ciphers/radar.js"></script>
 <script src="js/ciphers/circuit.js"></script>
 <script src="js/ciphers/maze.js"></script>
+<script src="js/ciphers/spectrogram.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/gif.js/dist/gif.js"></script>
 
@@ -60,6 +61,7 @@
         <option value="radar">Radar</option>
         <option value="circuit">Logic Gates</option>
         <option value="maze">Maze</option>
+        <option value="spectrogram">Spectrogram</option>
       </select>
     </fieldset>
     <fieldset class="control-fieldset">
@@ -96,7 +98,7 @@
     <div id="opt_poly" style="display:none;"><fieldset><input type="checkbox" id="poly_num_cb" onchange="generate_grid()" checked><label for="poly_num_cb"> Show Numbers</label></fieldset></div>
     <div id="opt_radar" style="display:none;"><fieldset><input type="checkbox" id="radar_clock_cb" onchange="generate_grid()" checked><label for="radar_clock_cb"> Show Clock Guide</label></fieldset></div>
     <div id="opt_circuit" style="display:none;"><fieldset><input type="checkbox" id="circuit_legend_cb" onchange="generate_grid()" checked><label for="circuit_legend_cb"> Show Legend</label></fieldset></div>
-    <div id="opt_maze" style="display:none;"><fieldset><input type="checkbox" id="maze_axes_cb" onchange="generate_grid()" checked><label for="maze_axes_cb"> Show Axes & Labels</label></fieldset></div>
+    <div id="opt_maze" style="display:none;"><fieldset><input type="checkbox" id="maze_axes_cb" onchange="generate_grid()" checked><label for="maze_axes_cb"> Show Axes & Labels</label></fieldset><fieldset><input type="checkbox" id="maze_jmp_dir_cb" onchange="generate_grid()" checked><label for="maze_jmp_dir_cb"> Show Jump Directions</label></fieldset></div>
     <div><fieldset><input type="checkbox" id="split_cb"><label for="split_cb"> Split Key & Grid</label></fieldset></div>
   </div>
 </div>

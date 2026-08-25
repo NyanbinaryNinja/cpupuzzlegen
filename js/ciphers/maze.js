@@ -45,8 +45,9 @@ class maze_cipher {
     this.ctx.fillStyle = colors.c_main;
     this.ctx.font = 'bold 20px monospace';
     let start_y = 60;
+    let show_jmp_dir = document.getElementById('maze_jmp_dir_cb') && document.getElementById('maze_jmp_dir_cb').checked;
     this.ctx.fillText(`START: [X:${this.path[0].x + 1}, Y:${this.path[0].y + 1}]`, this.canvas_el.width / 2, start_y);
-    for (let i = 1; i < this.path.length; i++) this.ctx.fillText(`JMP: ${this.path[i].dist} ${this.path[i].dir}`, this.canvas_el.width / 2, start_y + i * 30);
+    for (let i = 1; i < this.path.length; i++) this.ctx.fillText(`JMP: ${this.path[i].dist}${show_jmp_dir ? ` ${this.path[i].dir}` : ''}`, this.canvas_el.width / 2, start_y + i * 30);
     let box = 40, offset_x = (this.canvas_el.width - 8 * box) / 2, offset_y = this.split_y + 80;
     let show_axes = document.getElementById('maze_axes_cb') && document.getElementById('maze_axes_cb').checked;
     if (show_axes) {

@@ -14,7 +14,8 @@ const ciphers = {
   'pig': new pigpen_cipher(canvas_el, ctx),
   'radar': new radar_cipher(canvas_el, ctx),
   'circuit': new circuit_cipher(canvas_el, ctx),
-  'maze': new maze_cipher(canvas_el, ctx)
+  'maze': new maze_cipher(canvas_el, ctx),
+  'spectrogram': new spectrogram_cipher(canvas_el, ctx)
 };
 
 let current_cipher = null;
@@ -26,6 +27,7 @@ window.generate_grid = function() {
   document.getElementById('opt_poly').style.display = c_type === 'poly' ? 'block' : 'none';
   document.getElementById('opt_radar').style.display = c_type === 'radar' ? 'block' : 'none';
   document.getElementById('opt_maze').style.display = c_type === 'maze' ? 'block' : 'none';
+  Object.keys(ciphers).forEach(k => ciphers[k].set_active && ciphers[k].set_active(k === c_type));
   current_cipher = ciphers[c_type];
   current_cipher.generate(input_val);
   if (!anim_frame) {
