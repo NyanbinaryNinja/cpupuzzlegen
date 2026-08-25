@@ -56,8 +56,17 @@ const spectrogram = {
                 image.onerror = () => reject(new Error("Unable to load the selected image."));
                 image.src = this.i;
             } else {
-                x.fillStyle = "#fff"; x.font = "40px sans-serif";
-                x.fillText(t, 10, h / 2); resolve();
+                let font_size = h - 20;
+                x.font = `${font_size}px sans-serif`;
+                while (x.measureText(t).width > w - 20 && font_size > 20) {
+                    font_size -= 2;
+                    x.font = `${font_size}px sans-serif`;
+                }
+                x.fillStyle = "#fff";
+                x.textAlign = "center";
+                x.textBaseline = "middle";
+                x.fillText(t, w / 2, h / 2);
+                resolve();
             }
         });
         let d = x.getImageData(0, 0, w, h).data, sr = 44100, dr = 3, ac = new OfflineAudioContext(1, sr * dr, sr);
