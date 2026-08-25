@@ -1,22 +1,59 @@
-class spectrogram_cipher {
-  constructor(canvas_el, ctx) {
-    this.canvas_el = canvas_el;
-    this.ctx = ctx;
-    this.split_y = 0;
-    this.image = null;
-    this.file = null;
-    this.buffer = null;
-    this.render = null;
-    this.file_input = document.createElement('input');
-    this.file_input.type = 'file';
-    this.file_input.accept = 'image/*';
-    this.file_input.style.display = 'none';
-    document.querySelector('.controls-body').appendChild(this.file_input);
-    this.file_input.addEventListener('change', e => { let f = e.target.files[0], r = new FileReader(); if (f) { r.onload = () => { let i = new Image(); i.onload = () => { this.file = i; this.encode(i); }; i.src = r.result; }; r.readAsDataURL(f); } });
-  }
-  set_active(v) { this.file_input.style.display = v ? 'block' : 'none'; }
-  generate(t) { if (this.file) return this.encode(this.file); let c = document.createElement('canvas'), x = c.getContext('2d'); c.width = 640; c.height = 320; x.fillStyle = '#000'; x.fillRect(0, 0, c.width, c.height); x.fillStyle = '#fff'; x.font = '28px monospace'; x.textBaseline = 'middle'; x.fillText(t || '', 20, c.height / 2); this.encode(c); }
-  async encode(i) { let c = document.createElement('canvas'), x = c.getContext('2d'), w = 640, h = 320, s = 44100, d = 4, n = s * d, q = new OfflineAudioContext(1, n, s), p; c.width = w; c.height = h; x.drawImage(i, 0, 0, w, h); p = x.getImageData(0, 0, w, h).data; this.image = c; this.canvas_el.width = w; this.canvas_el.height = h; this.split_y = h; for (let y = 0; y < h; y += 8) { let o = q.createOscillator(), g = q.createGain(), f = 80 + y * 18; o.frequency.value = f; for (let z = 0; z < w; z++) { let a = 0; for (let j = 0; j < 8; j++) a += p[((y + j) * w + z) * 4] / 255; g.gain.setValueAtTime(a / 8 * .8, z / w * d); } o.connect(g).connect(q.destination); o.start(); o.stop(d); } this.render = q.startRendering(); this.buffer = await this.render; }
-  async save_file() { if (this.render) await this.render; if (!this.buffer) return; let a = this.buffer.getChannelData(0), v = new DataView(new ArrayBuffer(44 + a.length * 2)), w = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0))); w(0, 'RIFF'); v.setUint32(4, 36 + a.length * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, this.buffer.sampleRate, true); v.setUint32(28, this.buffer.sampleRate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, a.length * 2, true); for (let i = 0; i < a.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, a[i])) * 32767, true); let b = new Blob([v], { type: 'audio/wav' }); try { let h = await window.showSaveFilePicker({ suggestedName: 'spectrogram.wav', types: [{ description: 'WAV Audio', accept: { 'audio/wav': ['.wav'] } }] }), s = await h.createWritable(); await s.write(b); await s.close(); } catch (e) { let l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = 'spectrogram.wav'; l.click(); } }
-  draw() { if (this.image) this.ctx.drawImage(this.image, 0, 0); }
-}
+const spectrogram = {
+    f: null,
+    i: null,
+    init() {
+        let c = document.querySelector("#controls"), i = document.createElement("input");
+        i.type = "file";
+        i.accept = "image/*";
+        i.id = "sg-f";
+        i.style.display = "none";
+        i.onchange = (e) => {
+            if (e.target.files[0]) {
+                let r = new FileReader();
+                r.onload = (v) => this.i = v.target.result;
+                r.readAsDataURL(e.target.files[0]);
+            }
+        };
+        c.appendChild(i);
+        this.f = i;
+    },
+    show() { if (this.f) this.f.style.display = "block"; },
+    hide() { if (this.f) this.f.style.display = "none"; },
+    async gen(t) {
+        let w = 600, h = 200, c = document.createElement("canvas"), x = c.getContext("2d");
+        c.width = w; c.height = h;
+        x.fillStyle = "#000"; x.fillRect(0, 0, w, h);
+        await new Promise((r) => {
+            if (this.i) {
+                let m = new Image();
+                m.onload = () => { x.drawImage(m, 0, 0, w, h); r(); };
+                m.src = this.i;
+            } else {
+                x.fillStyle = "#fff"; x.font = "40px sans-serif";
+                x.fillText(t, 10, h / 2); r();
+            }
+        });
+        let d = x.getImageData(0, 0, w, h).data, sr = 44100, dr = 3, ac = new OfflineAudioContext(1, sr * dr, sr), b = ac.createBuffer(1, sr * dr, sr), cd = b.getChannelData(0);
+        for (let i = 0; i < w; i++) {
+            let ts = Math.floor((i / w) * sr * dr), te = Math.floor(((i + 1) / w) * sr * dr);
+            for (let j = 0; j < h; j++) {
+                let q = (d[(j * w + i) * 4] + d[(j * w + i) * 4 + 1] + d[(j * w + i) * 4 + 2]) / 765;
+                if (q > 0.05) {
+                    let f = 20000 - (j / h) * 20000;
+                    for (let k = ts; k < te; k++) cd[k] += Math.sin(2 * Math.PI * f * (k / sr)) * (q / h);
+                }
+            }
+        }
+        let s = ac.createBufferSource();
+        s.buffer = b; s.connect(ac.destination); s.start();
+        let rb = await ac.startRendering(), l = rb.length, ch = rb.numberOfChannels, ba = new ArrayBuffer(44 + l * 2), v = new DataView(ba), ws = (str, o) => { for (let k = 0; k < str.length; k++) v.setUint8(o + k, str.charCodeAt(k)); };
+        ws("RIFF", 0); v.setUint32(4, 36 + l * 2, true); ws("WAVEfmt ", 8); v.setUint32(16, 16, true);
+        v.setUint16(20, 1, true); v.setUint16(22, ch, true); v.setUint32(24, sr, true);
+        v.setUint32(28, sr * ch * 2, true); v.setUint16(32, ch * 2, true); v.setUint16(34, 16, true);
+        ws("data", 36); v.setUint32(40, l * 2, true);
+        let fcd = rb.getChannelData(0);
+        for (let i = 0; i < l; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, fcd[i])) * 32767, true);
+        let u = URL.createObjectURL(new Blob([ba], { type: "audio/wav" })), a = document.createElement("a");
+        a.href = u; a.download = "spectrogram.wav"; a.click();
+    }
+};
