@@ -57,6 +57,11 @@ window.start_recording = function() {
 };
 
 function draw_frame() {
+  if (current_cipher === spectrogram) {
+    current_cipher.draw();
+    anim_frame = requestAnimationFrame(draw_frame);
+    return;
+  }
   let theme_id = document.getElementById('theme_sel').value;
   let custom_hex = document.getElementById('c_pick').value;
   let colors = theme_manager.get_theme(theme_id, custom_hex, canvas_el, ctx);
