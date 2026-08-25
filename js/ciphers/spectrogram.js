@@ -6,6 +6,7 @@ const spectrogram = {
     ctx: null,
     analyser: null,
     frequency_data: null,
+    use_image: false,
     init(canvas_el, ctx) {
         let c = document.querySelector("#input_box").parentElement, r = document.createElement("div"), i = document.createElement("input"), l = document.createElement("button"), n = document.createElement("span"), a = document.createElement("audio");
         i.type = "file";
@@ -32,6 +33,7 @@ const spectrogram = {
         canvas_el.parentElement.insertBefore(a, canvas_el.nextSibling);
         this.r = r;
         this.f = i;
+        this.input_fieldset = c;
         this.a = a;
         this.canvas_el = canvas_el;
         this.ctx = ctx;
@@ -42,15 +44,20 @@ const spectrogram = {
         this.audio_ctx.createMediaElementSource(a).connect(this.analyser).connect(this.audio_ctx.destination);
         a.onplay = () => this.audio_ctx.resume();
     },
-    show() { if (this.r) this.r.style.display = "block"; },
+    show() { if (this.r) this.r.style.display = this.use_image ? "block" : "none"; },
     hide() { if (this.r) this.r.style.display = "none"; if (this.a) this.a.style.display = "none"; },
+    set_image_mode(enabled) {
+        this.use_image = enabled;
+        if (this.input_fieldset) this.input_fieldset.style.display = enabled ? "none" : "flex";
+        this.show();
+    },
     async gen(t) {
         let w = 600, h = 200, c = document.createElement("canvas"), x = c.getContext("2d");
         this.b = null;
         c.width = w; c.height = h;
         x.fillStyle = "#000"; x.fillRect(0, 0, w, h);
         await new Promise((resolve, reject) => {
-            if (this.i) {
+            if (this.use_image && this.i) {
                 let image = new Image();
                 image.onload = () => { x.drawImage(image, 0, 0, w, h); resolve(); };
                 image.onerror = () => reject(new Error("Unable to load the selected image."));

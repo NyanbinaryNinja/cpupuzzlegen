@@ -4,6 +4,9 @@ const input_box = document.getElementById('input_box');
 const rec_btn = document.getElementById('rec_btn');
 const generate_btn = document.getElementById('generate_btn');
 const split_cb = document.getElementById('split_cb');
+const input_fieldset = document.getElementById('input_fieldset');
+const split_fieldset = document.getElementById('split_fieldset');
+const spectrogram_options = document.getElementById('opt_spectrogram');
 
 const recorder = new gif_generator(canvas_el, rec_btn);
 const grid_manager = new grid_maker(canvas_el, ctx);
@@ -29,7 +32,10 @@ window.generate_grid = async function() {
   document.getElementById('opt_poly').style.display = c_type === 'poly' ? 'block' : 'none';
   document.getElementById('opt_radar').style.display = c_type === 'radar' ? 'block' : 'none';
   document.getElementById('opt_maze').style.display = c_type === 'maze' ? 'block' : 'none';
-  c_type === 'spectrogram' ? spectrogram.show() : spectrogram.hide();
+  spectrogram_options.style.display = c_type === 'spectrogram' ? 'block' : 'none';
+  split_fieldset.style.display = c_type === 'spectrogram' ? 'none' : 'block';
+  if (c_type === 'spectrogram') spectrogram.set_image_mode(spectrogram.use_image);
+  else { spectrogram.hide(); input_fieldset.style.display = 'flex'; }
   generate_btn.textContent = c_type === 'spectrogram' ? 'Generate Spectrogram' : 'Generate Grid';
   rec_btn.disabled = false;
   if (c_type === 'spectrogram') {
@@ -49,6 +55,10 @@ window.generate_grid = async function() {
   if (!anim_frame) {
     draw_frame();
   }
+};
+
+window.toggle_spectrogram_image = function(enabled) {
+  spectrogram.set_image_mode(enabled);
 };
 
 window.start_recording = function() {
