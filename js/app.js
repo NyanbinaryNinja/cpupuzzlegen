@@ -18,13 +18,15 @@ const ciphers = {
   'pig': new pigpen_cipher(canvas_el, ctx),
   'radar': new radar_cipher(canvas_el, ctx),
   'circuit': new circuit_cipher(canvas_el, ctx),
-  'maze': new maze_cipher(canvas_el, ctx)
+  'maze': new maze_cipher(canvas_el, ctx),
+  'pcap': pcap
 };
 
 let current_cipher = null;
 let anim_frame = null;
 
 spectrogram.init(canvas_el, ctx);
+pcap.init(canvas_el, ctx);
 
 window.generate_grid = async function() {
   let c_type = document.getElementById('cipher_select').value;
@@ -33,10 +35,12 @@ window.generate_grid = async function() {
   document.getElementById('opt_radar').style.display = c_type === 'radar' ? 'block' : 'none';
   document.getElementById('opt_maze').style.display = c_type === 'maze' ? 'block' : 'none';
   spectrogram_options.style.display = c_type === 'spectrogram' ? 'block' : 'none';
-  split_fieldset.style.display = c_type === 'spectrogram' ? 'none' : 'block';
+  split_fieldset.style.display = c_type === 'spectrogram' || c_type === 'pcap' ? 'none' : 'block';
   if (c_type === 'spectrogram') spectrogram.set_image_mode(spectrogram.use_image);
-  else { spectrogram.hide(); input_fieldset.style.display = 'flex'; }
-  generate_btn.textContent = c_type === 'spectrogram' ? 'Generate Spectrogram' : 'Generate Grid';
+  else { spectrogram.hide(); }
+  if (c_type === 'pcap') { pcap.show(); pcap.set_image_mode(pcap.use_image); input_fieldset.style.display = 'flex'; }
+  else { pcap.hide(); input_fieldset.style.display = 'flex'; }
+  generate_btn.textContent = c_type === 'spectrogram' ? 'Generate Spectrogram' : c_type === 'pcap' ? 'Generate PCAP' : 'Generate Grid';
   rec_btn.disabled = false;
   if (c_type === 'spectrogram') {
     current_cipher = spectrogram;
@@ -47,6 +51,15 @@ window.generate_grid = async function() {
       console.error('Unable to generate spectrogram:', error);
     } finally {
       rec_btn.disabled = false;
+    }
+    return;
+  }
+  if (c_type === 'pcap') {
+    current_cipher = pcap;
+    try {
+      await pcap.gen(input_val);
+    } catch (error) {
+      console.error('Unable to generate pcap:', error);
     }
     return;
   }
@@ -63,6 +76,7 @@ window.toggle_spectrogram_image = function(enabled) {
 
 window.start_recording = function() {
   if (current_cipher === spectrogram) return spectrogram.save();
+  if (current_cipher === pcap) return pcap.save();
   recorder.start_recording(split_cb.checked, current_cipher.split_y);
 };
 
