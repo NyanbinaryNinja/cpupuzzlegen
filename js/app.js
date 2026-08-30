@@ -58,8 +58,12 @@ window.generate_grid = async function() {
     current_cipher = pcap;
     try {
       await pcap.gen(input_val);
+      pcap.draw();
     } catch (error) {
       console.error('Unable to generate pcap:', error);
+    }
+    if (!anim_frame) {
+      draw_frame();
     }
     return;
   }
@@ -83,6 +87,11 @@ window.start_recording = function() {
 function draw_frame() {
   if (current_cipher === spectrogram) {
     current_cipher.draw();
+    anim_frame = requestAnimationFrame(draw_frame);
+    return;
+  }
+  if (current_cipher === pcap) {
+    pcap.draw();
     anim_frame = requestAnimationFrame(draw_frame);
     return;
   }
