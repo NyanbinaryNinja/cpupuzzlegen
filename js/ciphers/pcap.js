@@ -90,11 +90,11 @@ const pcap = {
     _dns_query(id, qname, qtype, src_ip, dst_ip, src_mac, dst_mac, ident) { let q = this._dns_name(qname), b = new Uint8Array(12 + q.length + 4), v = new DataView(b.buffer); v.setUint16(0, id, false); v.setUint16(2, 0x0100, false); v.setUint16(4, 1, false); v.setUint16(6, 0, false); v.setUint16(8, 0, false); v.setUint16(10, 0, false); for (let i = 0; i < q.length; i++) b[12 + i] = q[i]; v.setUint16(12 + q.length, qtype, false); v.setUint16(12 + q.length + 2, 1, false); return this._udp(src_ip, dst_ip, src_mac, dst_mac, 53000, 53, b, ident); },
     _dns_response(id, qname, txt, src_ip, dst_ip, src_mac, dst_mac, ident) { let q = this._dns_name(qname), t = this._u8(txt), b = new Uint8Array(12 + q.length + 4 + 16 + 2 + t.length), v = new DataView(b.buffer); v.setUint16(0, id, false); v.setUint16(2, 0x8180, false); v.setUint16(4, 1, false); v.setUint16(6, 1, false); v.setUint16(8, 0, false); v.setUint16(10, 0, false); for (let i = 0; i < q.length; i++) b[12 + i] = q[i]; v.setUint16(12 + q.length, 16, false); v.setUint16(12 + q.length + 2, 1, false); let o = 12 + q.length + 4; b[o] = 0xc0; b[o + 1] = 0x0c; v.setUint16(o + 2, 16, false); v.setUint16(o + 4, 1, false); v.setUint32(o + 6, 300, false); v.setUint16(o + 10, t.length + 1, false); b[o + 12] = t.length; for (let i = 0; i < t.length; i++) b[o + 13 + i] = t[i]; return this._udp(dst_ip, src_ip, dst_mac, src_mac, 53, 53000, b, ident); },
     _http_req(method, path, host, headers, body, src_ip, dst_ip, src_mac, dst_mac, ident) { let h = [method + " " + path + " HTTP/1.1", "Host: " + host, "User-Agent: Mozilla/5.0", "Accept: text/html,application/json", "Connection: keep-alive"].concat(headers || []), p = this._u8(h.join("\r\n") + "\r\n\r\n" + (body || "")); return this._tcp(src_ip, dst_ip, src_mac, dst_mac, 50000, 80, 123456789, 0, 0x18, p, ident); },
-    _http_resp(code, reason, headers, body, src_ip, dst_ip, src_mac, dst_mac, ident) { let h = ["HTTP/1.1 " + code + " " + reason, "Server: nginx/1.18.0", "Content-Type: text/html; charset=utf-8", "Connection: close"].concat(headers || []), p = this._u8(h.join("\r\n") + "\r\n\r\n" + (body || "")); return this._tcp(src_ip, dst_ip, src_mac, dst_mac, 3000000, 123456790, 0x10, 0x18, p, ident); },
+    _http_resp(code, reason, headers, body, src_ip, dst_ip, src_mac, dst_mac, ident) { let h = ["HTTP/1.1 " + code + " " + reason, "Server: nginx/1.18.0", "Content-Type: text/html; charset=utf-8", "Connection: close"].concat(headers || []), p = this._u8(h.join("\r\n") + "\r\n\r\n" + (body || "")); return this._tcp(src_ip, dst_ip, src_mac, dst_mac, 80, 50000, 123456790, 0x1000, 0x18, p, ident); },
     _ftp_session(flag, src_ip, dst_ip, src_mac, dst_mac) { let pw = "ftp_" + flag.slice(0, 12).replace(/[^a-zA-Z0-9]/g, "") + "!", banner = this._u8("220 ftp.example.net FTP server ready\r\n"), user = this._u8("331 Password required for admin\r\n"), pass = this._u8("230 Login successful\r\n"), list = this._u8("150 Opening ASCII mode data connection for /bin/ls\r\n\r\n"), data = this._u8("drwxr-xr-x  3 admin  users  4096 Jan  01  00:00 /var/log\r\n-rw-r--r--  1 admin  users  52 Jan  05  12:13 notes.txt\r\n"), file = this._u8("150 Opening BINARY mode data connection for flag.log\r\n226 Transfer complete\r\n"); return [this._tcp(src_ip, dst_ip, src_mac, dst_mac, 35000, 21, 1000, 0, 0x12, banner, 0x100), this._tcp(dst_ip, src_ip, dst_mac, src_mac, 21, 35000, 0, 1001, 0x18, this._u8("USER admin\r\n"), 0x101), this._tcp(dst_ip, src_ip, dst_mac, src_mac, 21, 35000, 0, 1001, 0x18, this._u8("PASS " + pw + "\r\n"), 0x102), this._tcp(src_ip, dst_ip, src_mac, dst_mac, 35001, 21, 2000, 0, 0x18, this._u8("LIST\r\n"), 0x103), this._tcp(dst_ip, src_ip, dst_mac, src_mac, 21, 35001, 0, 2001, 0x18, list, 0x104), this._tcp(dst_ip, src_ip, dst_mac, src_mac, 21, 35001, 0, 2001, 0x18, this._u8("NLST\r\n"), 0x105), this._tcp(dst_ip, src_ip, dst_mac, src_mac, 21, 35001, 0, 2001, 0x18, file, 0x106), this._tcp(src_ip, dst_ip, src_mac, dst_mac, 35002, 20, 4000, 0, 0x18, data, 0x107)]; },
     _sip_invite(flag, src_ip, dst_ip, src_mac, dst_mac) { let cid = "84f4d9af" + this._hex(flag).slice(0, 8), tag = "tag-" + this._hex(flag).slice(0, 12), uri = "sip:alice@corp.example.net", body = ["INVITE sip:alice@corp.example.net SIP/2.0", "Via: SIP/2.0/UDP 10.0.0.12:5060;branch=z9hG4bK" + cid, "Max-Forwards: 70", "To: <sip:alice@corp.example.net>", "From: \"bob\" <sip:bob@corp.example.net>;tag=" + tag, "Call-ID: " + cid, "CSeq: 201 INVITE", "Contact: <sip:bob@10.0.0.12:5060>", "Authorization: Digest username=\"bob\", realm=\"corp.example.net\", nonce=\"" + cid + "\", uri=\"" + uri + "\", response=\"" + this._b64(flag).slice(0, 24) + "\"", "Content-Type: application/sdp", "Content-Length: 144", "", "v=0\r\no=- 486401 1 IN IP4 10.0.0.12\r\ns=Phone Call\r\nc=IN IP4 10.0.0.12\r\nm=audio 5044 RTP/AVP 0 8\r\na=rtpmap:0 PCMU/8000\r\n"].join("\r\n"); let resp = ["SIP/2.0 200 OK", "Via: SIP/2.0/UDP 10.0.0.12:5060;branch=z9hG4bK" + cid, "From: \"bob\" <sip:bob@corp.example.net>;tag=" + tag, "To: <sip:alice@corp.example.net>;tag=77", "Call-ID: " + cid, "CSeq: 201 INVITE", "Contact: <sip:alice@10.0.0.20:5060>", "Content-Type: application/sdp", "Content-Length: 122", "", "v=0\r\no=- 486402 1 IN IP4 10.0.0.20\r\ns=Call Connected\r\nc=IN IP4 10.0.0.20\r\nm=audio 5052 RTP/AVP 0 8\r\na=rtpmap:0 PCMU/8000\r\n"].join("\r\n"); return [this._udp(src_ip, dst_ip, src_mac, dst_mac, 5060, 5060, this._u8(body), 0x200), this._udp(dst_ip, src_ip, dst_mac, src_mac, 5060, 5060, this._u8(resp), 0x201)]; },
     _pcap(packets) { let n = 24 + packets.reduce((a, p) => a + 16 + p.length, 0), ba = new ArrayBuffer(n), v = new DataView(ba), o = 24; v.setUint32(0, 0xa1b2c3d4, true); v.setUint16(4, 2, true); v.setUint16(6, 4, true); v.setUint32(8, 0, true); v.setUint32(12, 0xffffffff, true); v.setUint32(16, 1, true); for (let i = 0; i < packets.length; i++) { let p = packets[i], l = p.length, t = this._ts(); v.setUint32(o, t.sec, true); v.setUint32(o + 4, t.usec, true); v.setUint32(o + 8, l, true); v.setUint32(o + 12, l, true); let b = new Uint8Array(ba, o + 16, l); b.set(p); o += 16 + l; } return ba; },
-    _viewer_hit(x, y) { if (!this.viewer_rows || !this.viewer_rows.length || !this.ctx || !this.canvas_el) return -1; let row_h = 24, header_h = 26, left = 16, top = 36; let hit = Math.floor((y - top) / row_h); if (y < top || y > top + this.viewer_rows.length * row_h + 8 || x < left || x > this.canvas_el.width - 16) return -1; if (hit < 0 || hit >= this.viewer_rows.length) return -1; return this.viewer_rows[hit].flag ? hit : -1; },
+    _viewer_hit(x, y) { if (!this.viewer_rows || !this.viewer_rows.length || !this.ctx || !this.canvas_el) return -1; let row_h = 18, left = 8, top = 24; let hit = Math.floor((y - top) / row_h); if (y < top || y > top + this.viewer_rows.length * row_h + 4 || x < left || x > this.canvas_el.width - 8) return -1; if (hit < 0 || hit >= this.viewer_rows.length) return -1; return this.viewer_rows[hit].flag ? hit : -1; },
     _viewer_rows_for(flag) { let rows = []; let flag_text = flag || "FLAG{packet_sniffing_forensics}"; let packet_desc = [
         { time: "09:14:08.221", src: "10.10.20.5", dst: "203.0.113.5", protocol: "HTTP", info: "GET /login?user=admin&token=...&trace=...", flag: true },
         { time: "09:14:08.451", src: "203.0.113.5", dst: "10.10.20.5", protocol: "HTTP", info: "200 OK - Access granted for admin. X-Flag: " + flag_text, flag: true },
@@ -121,24 +121,18 @@ const pcap = {
         this.ctx.strokeStyle = "#1a3439";
         this.ctx.lineWidth = 1;
         this.ctx.fillStyle = "#d9f5ff";
-        this.ctx.font = "12px monospace";
-        let start_x = 16, col_w = [56, 110, 110, 82, 390], row_h = 24, top = 34;
-        this.ctx.fillText("No.", start_x, 18);
-        this.ctx.fillText("Time", start_x + col_w[0], 18);
-        this.ctx.fillText("Source", start_x + col_w[0] + col_w[1], 18);
-        this.ctx.fillText("Destination", start_x + col_w[0] + col_w[1] + col_w[2], 18);
-        this.ctx.fillText("Protocol", start_x + col_w[0] + col_w[1] + col_w[2] + col_w[3], 18);
-        this.ctx.fillText("Info", start_x + col_w[0] + col_w[1] + col_w[2] + col_w[3] + col_w[4], 18);
+        this.ctx.font = "11px monospace";
+        let start_x = 6, col_w = [32, 72, 90, 84, 120, 330], row_h = 18, top = 26;
         let x = start_x;
+        this.ctx.fillText("No.", x, 16); x += col_w[0]; this.ctx.fillText("Time", x, 16); x += col_w[1]; this.ctx.fillText("Src", x, 16); x += col_w[2]; this.ctx.fillText("Dst", x, 16); x += col_w[3]; this.ctx.fillText("Proto", x, 16); x += col_w[4]; this.ctx.fillText("Info", x, 16);
         for (let i = 0; i < rows.length; i++) {
             let r = rows[i], y = top + i * row_h;
             let selected = !!r.flag;
             if (selected) this.ctx.fillStyle = "rgba(255, 204, 0, 0.18)"; else this.ctx.fillStyle = i % 2 === 0 ? "rgba(18, 34, 50, 0.9)" : "rgba(10, 24, 30, 0.9)";
-            this.ctx.fillRect(10, y - 14, w - 20, row_h - 2);
+            this.ctx.fillRect(4, y - 12, w - 8, row_h - 2);
             if (hover && hover === r) this.ctx.strokeStyle = "#ffdb4d"; else this.ctx.strokeStyle = selected ? "#f4c542" : "#213d46";
-            this.ctx.strokeRect(10, y - 14, w - 20, row_h - 2);
+            this.ctx.strokeRect(4, y - 12, w - 8, row_h - 2);
             this.ctx.fillStyle = selected ? "#fff3b0" : "#dfeef7";
-            this.ctx.font = "11px monospace";
             let cx = start_x;
             this.ctx.fillText(String(r.no), cx, y);
             cx += col_w[0]; this.ctx.fillText(r.time, cx, y);
@@ -148,9 +142,9 @@ const pcap = {
             cx += col_w[4]; let info = r.info || ""; if (r.flag && r.flag_value) {
                 let index = info.indexOf(r.flag_value);
                 if (index >= 0) {
-                    let prefix = info.slice(0, index), suffix = info.slice(index + r.flag_value.length), x0 = cx, w0 = this.ctx.measureText(prefix).width;
+                    let prefix = info.slice(0, index), suffix = info.slice(index + r.flag_value.length), x0 = cx, width_prefix = this.ctx.measureText(prefix).width;
                     this.ctx.fillStyle = "#dfeef7"; this.ctx.fillText(prefix, x0, y);
-                    let x1 = x0 + this.ctx.measureText(prefix).width;
+                    let x1 = x0 + width_prefix;
                     this.ctx.fillStyle = "#ffde59"; this.ctx.fillText(r.flag_value, x1, y);
                     this.ctx.fillStyle = "#dfeef7"; this.ctx.fillText(suffix, x1 + this.ctx.measureText(r.flag_value).width, y);
                 } else {
@@ -166,9 +160,9 @@ const pcap = {
             this.ctx.fillRect(box_x, box_y, box_w, box_h);
             this.ctx.strokeStyle = "#ffe070";
             this.ctx.strokeRect(box_x, box_y, box_w, box_h);
-            this.ctx.fillStyle = "#fff6b2"; this.ctx.font = "bold 13px monospace"; this.ctx.fillText("Flag pointer: " + hover.flag_value, box_x + 12, box_y + 22);
-            this.ctx.fillStyle = "#dfeef7"; this.ctx.font = "12px monospace"; for (let i = 0; i < this.viewer_steps.length; i++) {
-                this.ctx.fillText(this.viewer_steps[i], box_x + 12, box_y + 44 + i * 16);
+            this.ctx.fillStyle = "#fff6b2"; this.ctx.font = "bold 12px monospace"; this.ctx.fillText("Flag pointer: " + hover.flag_value, box_x + 12, box_y + 22);
+            this.ctx.fillStyle = "#dfeef7"; this.ctx.font = "11px monospace"; for (let i = 0; i < this.viewer_steps.length; i++) {
+                this.ctx.fillText(this.viewer_steps[i], box_x + 12, box_y + 44 + i * 15);
             }
         }
     }
