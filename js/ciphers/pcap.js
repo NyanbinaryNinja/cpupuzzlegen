@@ -94,7 +94,7 @@ const pcap = {
     _ftp_session(flag, src_ip, dst_ip, src_mac, dst_mac) { let pw = "ftp_" + flag.slice(0, 12).replace(/[^a-zA-Z0-9]/g, "") + "!", banner = this._u8("220 ftp.example.net FTP server ready\r\n"), user = this._u8("331 Password required for admin\r\n"), pass = this._u8("230 Login successful\r\n"), list = this._u8("150 Opening ASCII mode data connection for /bin/ls\r\n\r\n"), data = this._u8("drwxr-xr-x  3 admin  users  4096 Jan  01  00:00 /var/log\r\n-rw-r--r--  1 admin  users  52 Jan  05  12:13 notes.txt\r\n"), file = this._u8("150 Opening BINARY mode data connection for flag.log\r\n226 Transfer complete\r\n"); return [this._tcp(src_ip, dst_ip, src_mac, dst_mac, 35000, 21, 1000, 0, 0x12, banner, 0x100), this._tcp(dst_ip, src_ip, dst_mac, src_mac, 21, 35000, 0, 1001, 0x18, this._u8("USER admin\r\n"), 0x101), this._tcp(dst_ip, src_ip, dst_mac, src_mac, 21, 35000, 0, 1001, 0x18, this._u8("PASS " + pw + "\r\n"), 0x102), this._tcp(src_ip, dst_ip, src_mac, dst_mac, 35001, 21, 2000, 0, 0x18, this._u8("LIST\r\n"), 0x103), this._tcp(dst_ip, src_ip, dst_mac, src_mac, 21, 35001, 0, 2001, 0x18, list, 0x104), this._tcp(dst_ip, src_ip, dst_mac, src_mac, 21, 35001, 0, 2001, 0x18, this._u8("NLST\r\n"), 0x105), this._tcp(dst_ip, src_ip, dst_mac, src_mac, 21, 35001, 0, 2001, 0x18, file, 0x106), this._tcp(src_ip, dst_ip, src_mac, dst_mac, 35002, 20, 4000, 0, 0x18, data, 0x107)]; },
     _sip_invite(flag, src_ip, dst_ip, src_mac, dst_mac) { let cid = "84f4d9af" + this._hex(flag).slice(0, 8), tag = "tag-" + this._hex(flag).slice(0, 12), uri = "sip:alice@corp.example.net", body = ["INVITE sip:alice@corp.example.net SIP/2.0", "Via: SIP/2.0/UDP 10.0.0.12:5060;branch=z9hG4bK" + cid, "Max-Forwards: 70", "To: <sip:alice@corp.example.net>", "From: \"bob\" <sip:bob@corp.example.net>;tag=" + tag, "Call-ID: " + cid, "CSeq: 201 INVITE", "Contact: <sip:bob@10.0.0.12:5060>", "Authorization: Digest username=\"bob\", realm=\"corp.example.net\", nonce=\"" + cid + "\", uri=\"" + uri + "\", response=\"" + this._b64(flag).slice(0, 24) + "\"", "Content-Type: application/sdp", "Content-Length: 144", "", "v=0\r\no=- 486401 1 IN IP4 10.0.0.12\r\ns=Phone Call\r\nc=IN IP4 10.0.0.12\r\nm=audio 5044 RTP/AVP 0 8\r\na=rtpmap:0 PCMU/8000\r\n"].join("\r\n"); let resp = ["SIP/2.0 200 OK", "Via: SIP/2.0/UDP 10.0.0.12:5060;branch=z9hG4bK" + cid, "From: \"bob\" <sip:bob@corp.example.net>;tag=" + tag, "To: <sip:alice@corp.example.net>;tag=77", "Call-ID: " + cid, "CSeq: 201 INVITE", "Contact: <sip:alice@10.0.0.20:5060>", "Content-Type: application/sdp", "Content-Length: 122", "", "v=0\r\no=- 486402 1 IN IP4 10.0.0.20\r\ns=Call Connected\r\nc=IN IP4 10.0.0.20\r\nm=audio 5052 RTP/AVP 0 8\r\na=rtpmap:0 PCMU/8000\r\n"].join("\r\n"); return [this._udp(src_ip, dst_ip, src_mac, dst_mac, 5060, 5060, this._u8(body), 0x200), this._udp(dst_ip, src_ip, dst_mac, src_mac, 5060, 5060, this._u8(resp), 0x201)]; },
     _pcap(packets) { let n = 24 + packets.reduce((a, p) => a + 16 + p.length, 0), ba = new ArrayBuffer(n), v = new DataView(ba), o = 24; v.setUint32(0, 0xa1b2c3d4, true); v.setUint16(4, 2, true); v.setUint16(6, 4, true); v.setUint32(8, 0, true); v.setUint32(12, 0, true); v.setUint32(16, 65535, true); v.setUint32(20, 1, true); for (let i = 0; i < packets.length; i++) { let p = packets[i], l = p.length, t = this._ts(); v.setUint32(o, t.sec, true); v.setUint32(o + 4, t.usec, true); v.setUint32(o + 8, l, true); v.setUint32(o + 12, l, true); let b = new Uint8Array(ba, o + 16, l); b.set(p); o += 16 + l; } return ba; },
-    _viewer_hit(x, y) { if (!this.viewer_rows || !this.viewer_rows.length || !this.ctx || !this.canvas_el) return -1; let h = this.canvas_el.height || 360; let max_rows = Math.min(this.viewer_rows.length, 14); let row_h = Math.max(12, Math.min(18, (h - 40) / Math.max(max_rows, 1))); let left = 8, top = 24; let hit = Math.floor((y - top) / row_h); if (y < top || y > top + max_rows * row_h + 4 || x < left || x > this.canvas_el.width - 8) return -1; if (hit < 0 || hit >= max_rows) return -1; return this.viewer_rows[hit].flag ? hit : -1; },
+    _viewer_hit(x, y) { if (!this.viewer_rows || !this.viewer_rows.length || !this.ctx || !this.canvas_el) return -1; let h = this.canvas_el.height || 360; let max_rows = Math.min(this.viewer_rows.length, 14); let row_h = Math.max(12, Math.min(18, (h - 50) / Math.max(max_rows, 1))); let content_h = 20 + max_rows * row_h, top = Math.max(8, Math.floor((h - content_h) / 2)); let left = 6; let hit = Math.floor((y - top - 20) / row_h); if (y < top + 20 || y > top + 20 + max_rows * row_h || x < left || x > this.canvas_el.width - 6) return -1; if (hit < 0 || hit >= max_rows) return -1; return this.viewer_rows[hit].flag ? hit : -1; },
     _decode_ascii(bytes) { let out = ""; for (let i = 0; i < bytes.length; i++) { let b = bytes[i]; if (b >= 32 && b < 127) out += String.fromCharCode(b); else if (b === 9 || b === 10 || b === 13) out += String.fromCharCode(b); else out += "."; } return out; },
     _packet_summary(packet, flag) { if (!packet || !packet.length) return { time: "--:--:--", src: "-", dst: "-", protocol: "RAW", info: "empty packet", flag: false }; let eth = packet; if (packet.length >= 14) { let ethertype = (eth[12] << 8) | eth[13]; if (ethertype !== 0x0800) return { time: "--:--:--", src: (Array.from(eth.slice(6, 12)).map((b) => b.toString(16).padStart(2, "0")).join(":")), dst: (Array.from(eth.slice(0, 6)).map((b) => b.toString(16).padStart(2, "0")).join(":")), protocol: "ETH", info: "EtherType 0x" + ethertype.toString(16).padStart(4, "0"), flag: !!(flag && String(flag).length > 0 && (String(flag).includes(flag) || false)) }; let ip = packet.slice(14); if (ip.length < 20) return { time: "--:--:--", src: "0.0.0.0", dst: "0.0.0.0", protocol: "IP", info: "Truncated IPv4", flag: false }; let version = ip[0] >> 4, ihl = (ip[0] & 0x0f) * 4, proto = ip[9], src = [ip[12], ip[13], ip[14], ip[15]].join("."), dst = [ip[16], ip[17], ip[18], ip[19]].join("."), payload = ip.slice(ihl); let protocol = proto === 6 ? "TCP" : proto === 17 ? "UDP" : proto === 1 ? "ICMP" : "IP"; let info = ""; if (proto === 6 && payload.length >= 20) { let sport = (payload[0] << 8) | payload[1], dport = (payload[2] << 8) | payload[3], data = payload.slice(20), text = this._decode_ascii(data.slice(0, 96)); if (dport === 80 || sport === 80) { info = (sport === 80 ? "HTTP response" : "HTTP request") + " " + (text.split(/\r?\n/)[0] || ""); } else if (dport === 443 || sport === 443) { info = "TLS " + (sport === 443 ? "client" : "server") + " on " + sport + "->" + dport; } else { info = "TCP " + sport + "->" + dport + " " + text.slice(0, 48); } } else if (proto === 17 && payload.length >= 8) { let sport = (payload[0] << 8) | payload[1], dport = (payload[2] << 8) | payload[3], data = payload.slice(8), text = this._decode_ascii(data.slice(0, 96)); if (dport === 53 || sport === 53) { let qname = ""; let offset = 12; for (let j = 0; j < 32 && offset < data.length; j++) { let len = data[offset]; if (len === 0) { offset++; break; } if (offset + 1 + len > data.length) break; qname += (j > 0 ? "." : "") + this._decode_ascii(data.slice(offset + 1, offset + 1 + len)).replace(/\.+/g, "."); offset += 1 + len; } info = "DNS " + (dport === 53 ? "query" : "response") + " " + qname; } else if (dport === 5353 || sport === 5353) { info = "mDNS " + text.slice(0, 64); } else { info = "UDP " + sport + "->" + dport + " " + text.slice(0, 48); } } else if (proto === 1 && payload.length >= 8) { let type = payload[0], code = payload[1], infoText = type === 8 ? "echo request" : type === 0 ? "echo reply" : "ICMP type " + type; info = infoText + " code=" + code; } else { info = "IPv4 proto=" + proto; } let flagHit = !!(flag && info.indexOf(flag) >= 0); return { time: "--:--:--", src, dst, protocol, info, flag: flagHit }; } return { time: "--:--:--", src: "-", dst: "-", protocol: "RAW", info: "Unparsed packet", flag: false }; },
     _viewer_rows_for(flag, packets) { let rows = []; let packet_list = Array.isArray(packets) ? packets : []; let display_packets = packet_list.slice(0, 18); for (let i = 0; i < display_packets.length; i++) { let packet = display_packets[i]; let data = this._packet_summary(packet, flag); rows.push({ no: i + 1, time: data.time, src: data.src, dst: data.dst, protocol: data.protocol, info: data.info, length: packet.length || 0, flag: !!data.flag, flag_value: flag || "FLAG{packet_sniffing_forensics}" }); } if (!rows.length) { rows.push({ no: 1, time: "--:--:--", src: "0.0.0.0", dst: "0.0.0.0", protocol: "PCAP", info: "Awaiting packet generation", length: 0, flag: false, flag_value: flag || "FLAG{packet_sniffing_forensics}" }); } return rows; },
@@ -103,7 +103,7 @@ const pcap = {
     draw() {
         if (!this.ctx || !this.canvas_el) return;
         let w = this.canvas_el.width, h = this.canvas_el.height, rows = (this.viewer_rows || []).slice(0, 14), hover = this.viewer_hover >= 0 && this.viewer_rows ? this.viewer_rows[this.viewer_hover] : null;
-        let row_h = Math.max(12, Math.min(18, (h - 40) / Math.max(rows.length || 1, 1))), top = 26;
+        let max_rows = Math.min(rows.length, 14), row_h = Math.max(12, Math.min(18, (h - 50) / Math.max(max_rows, 1))), content_h = 20 + max_rows * row_h, top = Math.max(8, Math.floor((h - content_h) / 2));
         this.ctx.clearRect(0, 0, w, h);
         this.ctx.fillStyle = "#071114";
         this.ctx.fillRect(0, 0, w, h);
@@ -111,16 +111,16 @@ const pcap = {
         this.ctx.lineWidth = 1;
         this.ctx.fillStyle = "#d9f5ff";
         this.ctx.font = "11px monospace";
-        let start_x = 6, col_w = [28, 60, 80, 80, 52, 160];
+        let start_x = 8, col_w = [26, 55, 70, 75, 50, 400];
         let x = start_x;
-        this.ctx.fillText("No.", x, 16); x += col_w[0]; this.ctx.fillText("Time", x, 16); x += col_w[1]; this.ctx.fillText("Src", x, 16); x += col_w[2]; this.ctx.fillText("Dst", x, 16); x += col_w[3]; this.ctx.fillText("Proto", x, 16); x += col_w[4]; this.ctx.fillText("Info", x, 16);
+        this.ctx.fillText("No.", x, top + 14); x += col_w[0]; this.ctx.fillText("Time", x, top + 14); x += col_w[1]; this.ctx.fillText("Src", x, top + 14); x += col_w[2]; this.ctx.fillText("Dst", x, top + 14); x += col_w[3]; this.ctx.fillText("Proto", x, top + 14); x += col_w[4]; this.ctx.fillText("Info", x, top + 14);
         for (let i = 0; i < rows.length; i++) {
-            let r = rows[i], y = top + i * row_h;
+            let r = rows[i], y = top + 20 + i * row_h;
             let selected = !!r.flag;
             if (selected) this.ctx.fillStyle = "rgba(255, 204, 0, 0.18)"; else this.ctx.fillStyle = i % 2 === 0 ? "rgba(18, 34, 50, 0.9)" : "rgba(10, 24, 30, 0.9)";
-            this.ctx.fillRect(4, y - 12, w - 8, row_h - 2);
+            this.ctx.fillRect(6, y - 10, w - 12, row_h - 2);
             if (hover && hover === r) this.ctx.strokeStyle = "#ffdb4d"; else this.ctx.strokeStyle = selected ? "#f4c542" : "#213d46";
-            this.ctx.strokeRect(4, y - 12, w - 8, row_h - 2);
+            this.ctx.strokeRect(6, y - 10, w - 12, row_h - 2);
             this.ctx.fillStyle = selected ? "#fff3b0" : "#dfeef7";
             let cx = start_x;
             this.ctx.fillText(String(r.no), cx, y);
@@ -132,7 +132,7 @@ const pcap = {
                 let index = info.indexOf(r.flag_value);
                 if (index >= 0) {
                     let prefix = info.slice(0, index), suffix = info.slice(index + r.flag_value.length), x0 = cx, width_prefix = this.ctx.measureText(prefix).width;
-                    let max_w = w - x0 - 8;
+                    let max_w = w - x0 - 12;
                     if (this.ctx.measureText(info).width > max_w) {
                         let keep = info;
                         while (keep.length > 0 && this.ctx.measureText(keep + "...").width > max_w) keep = keep.slice(0, -1);
@@ -145,18 +145,28 @@ const pcap = {
                     this.ctx.fillStyle = "#ffde59"; this.ctx.fillText(r.flag_value, x1, y);
                     this.ctx.fillStyle = "#dfeef7"; this.ctx.fillText(suffix, x1 + this.ctx.measureText(r.flag_value).width, y);
                 } else {
-                    this.ctx.fillStyle = selected ? "#fff3b0" : "#dfeef7"; let max_w = w - cx - 8; let text = info; while (text.length > 0 && this.ctx.measureText(text + "...").width > max_w) text = text.slice(0, -1); if (text.length < info.length) text += "..."; this.ctx.fillText(text, cx, y);
+                    this.ctx.fillStyle = selected ? "#fff3b0" : "#dfeef7"; let max_w = w - cx - 12; let text = info; while (text.length > 0 && this.ctx.measureText(text + "...").width > max_w) text = text.slice(0, -1); if (text.length < info.length) text += "..."; this.ctx.fillText(text, cx, y);
                 }
             } else {
-                this.ctx.fillStyle = selected ? "#fff3b0" : "#dfeef7"; let max_w = w - cx - 8; let text = info; while (text.length > 0 && this.ctx.measureText(text + "...").width > max_w) text = text.slice(0, -1); if (text.length < info.length) text += "..."; this.ctx.fillText(text, cx, y);
+                this.ctx.fillStyle = selected ? "#fff3b0" : "#dfeef7"; let max_w = w - cx - 12; let text = info; while (text.length > 0 && this.ctx.measureText(text + "...").width > max_w) text = text.slice(0, -1); if (text.length < info.length) text += "..."; this.ctx.fillText(text, cx, y);
             }
         }
         if (hover && hover.flag) {
-            let box_w = 440, box_h = 110, box_x = Math.min(w - box_w - 20, 30), box_y = Math.max(24, h - 150);
+            let max_rows = Math.min(this.viewer_rows.length, 14);
+            let row_h = Math.max(12, Math.min(18, (h - 50) / Math.max(max_rows, 1)));
+            let content_h = 20 + max_rows * row_h;
+            let content_top = Math.max(8, Math.floor((h - content_h) / 2));
+            let box_w = 440, box_h = 110;
+            let box_x = Math.min(w - box_w - 12, 8);
+            let hovered_y = content_top + 20 + this.viewer_hover * row_h + row_h / 2;
+            let box_y = Math.min(hovered_y - 60, h - box_h - 8);
+            box_y = Math.max(content_top + 8, box_y);
             this.ctx.fillStyle = "rgba(6, 18, 24, 0.94)";
             this.ctx.fillRect(box_x, box_y, box_w, box_h);
             this.ctx.strokeStyle = "#ffe070";
+            this.ctx.lineWidth = 2;
             this.ctx.strokeRect(box_x, box_y, box_w, box_h);
+            this.ctx.lineWidth = 1;
             this.ctx.fillStyle = "#fff6b2"; this.ctx.font = "bold 12px monospace"; this.ctx.fillText("Flag pointer: " + hover.flag_value, box_x + 12, box_y + 22);
             this.ctx.fillStyle = "#dfeef7"; this.ctx.font = "11px monospace"; for (let i = 0; i < this.viewer_steps.length; i++) { this.ctx.fillText(this.viewer_steps[i], box_x + 12, box_y + 44 + i * 15); }
         }
