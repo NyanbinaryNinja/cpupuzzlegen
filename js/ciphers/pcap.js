@@ -1,197 +1,706 @@
 const pcap = {
-    f: null,
-    r: null,
-    use_image: false,
-    input_fieldset: null,
-    canvas_el: null,
-    ctx: null,
-    b: null,
-    buffer: null,
-    init(canvas_el, ctx) {
-        let c = document.querySelector("#input_box").parentElement, p = document.querySelector(".options-window .window-body"), r = document.createElement("fieldset"), u = document.createElement("fieldset"), d = document.createElement("select"), i = document.createElement("input"), l = document.createElement("button"), n = document.createElement("span"), q = document.createElement("input"), y = document.createElement("input"), z = document.createElement("textarea"), s = document.createElement("input"), a = document.createElement("label"), e = document.createElement("label"), w = document.createElement("label"), m = document.createElement("div"), x = document.createElement("label"), o = document.createElement("div"), v = document.createElement("label"), h = document.createElement("select");
-        this.canvas_el = canvas_el; this.ctx = ctx; this.input_fieldset = c; this.r = r; this.f = i;
-        this.viewer_rows = [];
+  f: null,
+  r: null,
+  use_image: false,
+  input_fieldset: null,
+  canvas_el: null,
+  ctx: null,
+  b: null,
+  buffer: null,
+
+  init(canvas_el, ctx) {
+    let c = document.querySelector('#input_box').parentElement;
+    let p = document.querySelector('.options-window .window-body');
+    let r = document.createElement('fieldset');
+    let o = document.createElement('div');
+    let d = document.createElement('select');
+    let h = document.createElement('select');
+    let i = document.createElement('input');
+    let l = document.createElement('button');
+    let n = document.createElement('span');
+    let u = document.createElement('div');
+    let q = document.createElement('input');
+    let y = document.createElement('input');
+    let z = document.createElement('textarea');
+    let s = document.createElement('input');
+    let a = document.createElement('label');
+    let v = document.createElement('label');
+    let x = document.createElement('label');
+    let e = document.createElement('label');
+    let w = document.createElement('label');
+    let g = document.createElement('label');
+    this.canvas_el = canvas_el;
+    this.ctx = ctx;
+    this.input_fieldset = c;
+    this.r = r;
+    this.f = i;
+    this.viewer_rows = [];
+    this.viewer_hover = -1;
+    this.viewer_steps = [];
+    this.active_variant = '';
+    this.active_filter = '';
+    if (canvas_el) {
+      canvas_el.addEventListener('mousemove', (ev) => {
+        if (current_cipher !== this || !this.viewer_rows.length) return;
+        let rect = canvas_el.getBoundingClientRect();
+        let mx = ((ev.clientX - rect.left) / rect.width) * canvas_el.width;
+        let my = ((ev.clientY - rect.top) / rect.height) * canvas_el.height;
+        let hit = this._viewer_hit(mx, my);
+        this.viewer_hover = hit;
+        canvas_el.style.cursor = hit >= 0 ? 'pointer' : 'default';
+      });
+      canvas_el.addEventListener('mouseleave', () => {
+        if (current_cipher !== this) return;
         this.viewer_hover = -1;
-        this.viewer_steps = [];
-        this.viewer_hint = "";
-        if (canvas_el) {
-            canvas_el.width = 900;
-            canvas_el.height = 360;
-            canvas_el.onmousemove = (event) => {
-                if (!this.viewer_rows || !this.viewer_rows.length) return;
-                let rect = canvas_el.getBoundingClientRect(), x = ((event.clientX - rect.left) / rect.width) * canvas_el.width, y = ((event.clientY - rect.top) / rect.height) * canvas_el.height;
-                let hit = this._viewer_hit(x, y);
-                this.viewer_hover = hit;
-                canvas_el.style.cursor = hit >= 0 ? "pointer" : "default";
-            };
-            canvas_el.onmouseleave = () => { this.viewer_hover = -1; canvas_el.style.cursor = "default"; };
-        }
-        u.style.cssText = "display:flex;align-items:center;gap:8px;flex-wrap:wrap;"; u.className = "mb-5";
-        i.type = "file"; i.accept = ".txt,.json,.bin,.pcap,image/*"; i.style.display = "none"; i.id = "pcap-f";
-        l.type = "button"; l.textContent = "Upload File"; l.className = "mb-5"; l.onclick = () => i.click();
-        n.textContent = "No file selected"; n.style.marginLeft = "8px";
-        i.onchange = (event) => {
-            let file = event.target.files[0];
-            if (file) {
-                let reader = new FileReader();
-                n.textContent = file.name;
-                reader.onload = (result) => { this.file_text = String(result.target.result || ""); };
-                reader.readAsText(file);
-            }
-        };
-        u.append(l, n);
-        c.parentElement.insertBefore(u, c.nextSibling);
-        r.className = "mb-5 w-100"; r.style.cssText = "display:block;width:100%;margin-top:8px";
-        d.className = "mb-5 w-100"; d.innerHTML = '<option value="easy">Easy (HTTP Plaintext)</option><option value="intermediate">Intermediate (DNS Exfiltration)</option><option value="hard">Hard (Header Steganography)</option>';
-        d.onchange = () => { this.difficulty = d.value; this._set_hint_options(); if (this.r) this.r.style.display = "block"; };
-        this.difficulty_select = d;
-        v.textContent = "Look for:"; v.style.display = "block"; v.className = "mb-5";
-        h.className = "mb-5 w-100"; this.hint_select = h;
-        q.type = "checkbox"; q.checked = false; q.id = "pcap-cascadia";
-        y.type = "number"; y.min = "8"; y.max = "512"; y.step = "1"; y.value = "48"; y.className = "w-100";
-        z.className = "w-100"; z.rows = "4"; z.placeholder = "Custom noise lines";
-        s.type = "range"; s.min = "0"; s.max = "100"; s.step = "1"; s.value = "25"; s.className = "w-100";
-        a.textContent = "Difficulty:"; a.style.display = "block"; a.className = "mb-5";
-        e.textContent = "Use Cascadia news/rumours"; e.style.display = "block"; e.className = "mb-5"; e.htmlFor = q.id;
-        w.textContent = "Corruption:"; w.style.display = "block"; w.className = "mb-5";
-        x.textContent = "Packet count / file length:"; x.style.display = "block"; x.className = "mb-5";
-        o.style.cssText = "display:flex;flex-direction:column;gap:8px;";
-        let g = document.createElement("label");
-        g.style.cssText = "display:flex;align-items:center;gap:8px;";
-        g.appendChild(q); g.appendChild(e);
-        o.append(a, d, v, h, x, y, g, z, w, s);
-        r.append(o);
-        if (p) p.appendChild(r);
-        this.noise_input = y; this.cascadia_cb = q; this.custom_noise = z; this.corruption_sld = s; this.file_text = ""; this.difficulty = d.value; this._set_hint_options();
-    },
-    _set_hint_options() {
-        if (!this.hint_select) return;
-        let options = this.difficulty === "easy" ? [["http-credentials", "HTTP request with credentials"], ["http-response", "HTTP response header"], ["dns-response", "DNS TXT response"]] : this.difficulty === "intermediate" ? [["dns-exfil", "DNS TXT exfiltration"], ["icmp-trace", "ICMP trace packet"], ["sip-auth", "SIP authentication"]] : [["tls-header", "TLS header fragment"], ["tls-header", "TLS sequence number"], ["tls-header", "TLS client packet"]];
-        let hint_select = this.hint_select;
-        hint_select.innerHTML = "";
-        for (let i = 0; i < options.length; i++) { let option = document.createElement("option"); option.value = options[i][0]; option.textContent = options[i][1]; hint_select.appendChild(option); }
-        hint_select.onchange = () => { this.viewer_target = hint_select.value; this.viewer_hover = -1; };
-        this.viewer_target = hint_select.value;
-    },
-    show() { if (this.r) this.r.style.display = "block"; },
-    hide() { if (this.r) this.r.style.display = "none"; },
-    set_image_mode(enabled) {
-        this.use_image = enabled;
-        if (this.input_fieldset) this.input_fieldset.style.display = enabled ? "none" : "flex";
-        this.show();
-    },
-    generate(t) { return this.gen(t); },
-    _str(v) { return String(v || ""); },
-    _u8(s) { if (typeof TextEncoder !== "undefined") return new TextEncoder().encode(this._str(s)); let b = unescape(encodeURIComponent(this._str(s))), o = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) o[i] = b.charCodeAt(i); return o; },
-    _hex(v) { let s = "", b = this._u8(v); for (let i = 0; i < b.length; i++) s += b[i].toString(16).padStart(2, "0"); return s; },
-    _b64(v) { return btoa(unescape(encodeURIComponent(this._str(v)))); },
-    _ip32(v) { let a = this._str(v).split(".").map((x) => parseInt(x, 10) || 0), c = ((a[0] << 24) | (a[1] << 16) | (a[2] << 8) | a[3]) >>> 0; return c; },
-    _csum(b) { let s = 0; for (let i = 0; i < b.length; i += 2) s += (b[i] << 8) + (i + 1 < b.length ? b[i + 1] : 0); while (s > 0xffff) s = (s & 0xffff) + (s >>> 16); return (~s) & 0xffff; },
-    _m8(v) { let a = typeof v === "string" ? v.split(":").map((x) => parseInt(x, 16) || 0) : v; return new Uint8Array(a); },
-    _dns_name(s) { let o = [], k = this._str(s).replace(/\.+/g, ".").replace(/^\./, "").replace(/\.$/, "").split("."); for (let i = 0; i < k.length; i++) { let p = k[i]; if (!p) continue; o.push(p.length); for (let j = 0; j < p.length; j++) o.push(p.charCodeAt(j)); } o.push(0); return new Uint8Array(o); },
-    _corrupt(s, p) { let o = "", x = this._str(s), y = "@#$%&*+=/\\|~^"; let v = Math.max(0, Math.min(1, Number(p || 0) / 100)); for (let i = 0; i < x.length; i++) { let c = x[i], r = Math.random(); if (c === "\n" || c === "\r") { o += c; continue; } if (r < v * 0.9) o += y[Math.floor(Math.random() * y.length)]; else o += c; } return o; },
-    _ts() { let b = Math.floor(Date.now() / 1000) - Math.floor(Math.random() * 3600), u = Math.floor(Math.random() * 1000000); return { sec: b, usec: u }; },
-    async _noise() { let n = []; if (this.cascadia_cb && this.cascadia_cb.checked) { try { let u = "./json/" + encodeURI("CPU - Weaver's Webway - news-rumors-cascadia-ic [982709436881723442].json"), r = await fetch(u); if (r && r.ok) { let d = await r.json(); if (d && Array.isArray(d.messages)) for (let i = 0; i < d.messages.length; i++) { let v = d.messages[i], c = v && v.content ? String(v.content) : ""; if (c) n.push(c); } } } catch (e) {} } if (this.custom_noise && this.custom_noise.value) n = n.concat(this.custom_noise.value.split(/\r?\n/).map((x) => x.trim()).filter(Boolean)); if (!n.length) n = ["Recovered chatter", "Intercepted relay", "Cascadia rumor stream", "ICS telemetry", "Market signal", "Harbor traffic", "Signal drift", "Server sync error", "Correlating lognotes", "Tunnel status stabilizing"]; return n; },
-    _eth(src, dst, proto, payload) { let b = new Uint8Array(14 + payload.length), v = new DataView(b.buffer); for (let i = 0; i < 6; i++) { v.setUint8(i, src[i]); v.setUint8(i + 6, dst[i]); } v.setUint16(12, proto, false); for (let i = 0; i < payload.length; i++) v.setUint8(14 + i, payload[i]); return b; },
-    _ipv4(src_ip, dst_ip, proto, payload, id) { let b = new Uint8Array(20 + payload.length), v = new DataView(b.buffer); v.setUint8(0, 0x45); v.setUint8(1, 0); v.setUint16(2, 20 + payload.length, false); v.setUint16(4, id || 0, false); v.setUint16(6, 0, false); v.setUint8(8, 64); v.setUint8(9, proto); v.setUint16(10, 0, false); v.setUint32(12, this._ip32(src_ip), false); v.setUint32(16, this._ip32(dst_ip), false); v.setUint16(10, this._csum(b), false); for (let i = 0; i < payload.length; i++) v.setUint8(20 + i, payload[i]); return b; },
-    _tcp_checksum(src_ip, dst_ip, seg) { let b = new Uint8Array(12 + seg.length), d = new DataView(b.buffer); d.setUint32(0, this._ip32(src_ip), false); d.setUint32(4, this._ip32(dst_ip), false); d.setUint8(8, 0); d.setUint8(9, 6); d.setUint16(10, seg.length, false); for (let i = 0; i < seg.length; i++) b[12 + i] = seg[i]; return this._csum(b); },
-    _udp_checksum(src_ip, dst_ip, seg) { let b = new Uint8Array(12 + seg.length), d = new DataView(b.buffer); d.setUint32(0, this._ip32(src_ip), false); d.setUint32(4, this._ip32(dst_ip), false); d.setUint8(8, 0); d.setUint8(9, 17); d.setUint16(10, seg.length, false); for (let i = 0; i < seg.length; i++) b[12 + i] = seg[i]; return this._csum(b); },
-    _tcp(src_ip, dst_ip, src_mac, dst_mac, src_port, dst_port, seq, ack, flags, payload, ident) { let h = new Uint8Array(20 + payload.length), v = new DataView(h.buffer); v.setUint16(0, src_port, false); v.setUint16(2, dst_port, false); v.setUint32(4, seq >>> 0, false); v.setUint32(8, ack >>> 0, false); v.setUint8(12, 0x50); v.setUint8(13, flags); v.setUint16(14, 0x4000, false); v.setUint16(16, 0, false); v.setUint16(18, 0, false); for (let i = 0; i < payload.length; i++) v.setUint8(20 + i, payload[i]); v.setUint16(16, this._tcp_checksum(src_ip, dst_ip, h), false); return this._eth(src_mac, dst_mac, 0x0800, this._ipv4(src_ip, dst_ip, 6, h, ident)); },
-    _udp(src_ip, dst_ip, src_mac, dst_mac, src_port, dst_port, payload, ident) { let h = new Uint8Array(8 + payload.length), v = new DataView(h.buffer); v.setUint16(0, src_port, false); v.setUint16(2, dst_port, false); v.setUint16(4, 8 + payload.length, false); v.setUint16(6, 0, false); for (let i = 0; i < payload.length; i++) v.setUint8(8 + i, payload[i]); v.setUint16(6, this._udp_checksum(src_ip, dst_ip, h), false); return this._eth(src_mac, dst_mac, 0x0800, this._ipv4(src_ip, dst_ip, 17, h, ident)); },
-    _icmp_echo(type, code, id, seq, src_ip, dst_ip, src_mac, dst_mac, payload, ident) { let p = payload || []; let h = new Uint8Array(8 + p.length), v = new DataView(h.buffer); v.setUint8(0, type || 8); v.setUint8(1, code || 0); v.setUint16(2, 0, false); v.setUint16(4, id || 0, false); v.setUint16(6, seq || 0, false); for (let i = 0; i < p.length; i++) v.setUint8(8 + i, p[i]); return this._eth(src_mac, dst_mac, 0x0800, this._ipv4(src_ip, dst_ip, 1, h, ident)); },
-    _dns_query(id, qname, qtype, src_ip, dst_ip, src_mac, dst_mac, ident) { let q = this._dns_name(qname), b = new Uint8Array(12 + q.length + 4), v = new DataView(b.buffer); v.setUint16(0, id, false); v.setUint16(2, 0x0100, false); v.setUint16(4, 1, false); v.setUint16(6, 0, false); v.setUint16(8, 0, false); v.setUint16(10, 0, false); for (let i = 0; i < q.length; i++) b[12 + i] = q[i]; v.setUint16(12 + q.length, qtype, false); v.setUint16(12 + q.length + 2, 1, false); return this._udp(src_ip, dst_ip, src_mac, dst_mac, 53000, 53, b, ident); },
-    _dns_response(id, qname, txt, src_ip, dst_ip, src_mac, dst_mac, ident) { let q = this._dns_name(qname), t = this._u8(txt), b = new Uint8Array(12 + q.length + 4 + 16 + 2 + t.length), v = new DataView(b.buffer); v.setUint16(0, id, false); v.setUint16(2, 0x8180, false); v.setUint16(4, 1, false); v.setUint16(6, 1, false); v.setUint16(8, 0, false); v.setUint16(10, 0, false); for (let i = 0; i < q.length; i++) b[12 + i] = q[i]; v.setUint16(12 + q.length, 16, false); v.setUint16(12 + q.length + 2, 1, false); let o = 12 + q.length + 4; b[o] = 0xc0; b[o + 1] = 0x0c; v.setUint16(o + 2, 16, false); v.setUint16(o + 4, 1, false); v.setUint32(o + 6, 300, false); v.setUint16(o + 10, t.length + 1, false); b[o + 12] = t.length; for (let i = 0; i < t.length; i++) b[o + 13 + i] = t[i]; return this._udp(dst_ip, src_ip, dst_mac, src_mac, 53, 53000, b, ident); },
-    _http_req(method, path, host, headers, body, src_ip, dst_ip, src_mac, dst_mac, ident) { let h = [method + " " + path + " HTTP/1.1", "Host: " + host, "User-Agent: Mozilla/5.0", "Accept: text/html,application/json", "Connection: keep-alive"].concat(headers || []), p = this._u8(h.join("\r\n") + "\r\n\r\n" + (body || "")); return this._tcp(src_ip, dst_ip, src_mac, dst_mac, 50000, 80, 123456789, 0, 0x18, p, ident); },
-    _http_resp(code, reason, headers, body, src_ip, dst_ip, src_mac, dst_mac, ident) { let h = ["HTTP/1.1 " + code + " " + reason, "Server: nginx/1.18.0", "Content-Type: text/html; charset=utf-8", "Connection: close"].concat(headers || []), p = this._u8(h.join("\r\n") + "\r\n\r\n" + (body || "")); return this._tcp(src_ip, dst_ip, src_mac, dst_mac, 80, 50000, 123456790, 0x1000, 0x18, p, ident); },
-    _ftp_session(flag, src_ip, dst_ip, src_mac, dst_mac) { let pw = "ftp_" + flag.slice(0, 12).replace(/[^a-zA-Z0-9]/g, "") + "!", banner = this._u8("220 ftp.example.net FTP server ready\r\n"), user = this._u8("331 Password required for admin\r\n"), pass = this._u8("230 Login successful\r\n"), list = this._u8("150 Opening ASCII mode data connection for /bin/ls\r\n\r\n"), data = this._u8("drwxr-xr-x  3 admin  users  4096 Jan  01  00:00 /var/log\r\n-rw-r--r--  1 admin  users  52 Jan  05  12:13 notes.txt\r\n"), file = this._u8("150 Opening BINARY mode data connection for flag.log\r\n226 Transfer complete\r\n"); return [this._tcp(src_ip, dst_ip, src_mac, dst_mac, 35000, 21, 1000, 0, 0x12, banner, 0x100), this._tcp(dst_ip, src_ip, dst_mac, src_mac, 21, 35000, 0, 1001, 0x18, this._u8("USER admin\r\n"), 0x101), this._tcp(dst_ip, src_ip, dst_mac, src_mac, 21, 35000, 0, 1001, 0x18, this._u8("PASS " + pw + "\r\n"), 0x102), this._tcp(src_ip, dst_ip, src_mac, dst_mac, 35001, 21, 2000, 0, 0x18, this._u8("LIST\r\n"), 0x103), this._tcp(dst_ip, src_ip, dst_mac, src_mac, 21, 35001, 0, 2001, 0x18, list, 0x104), this._tcp(dst_ip, src_ip, dst_mac, src_mac, 21, 35001, 0, 2001, 0x18, this._u8("NLST\r\n"), 0x105), this._tcp(dst_ip, src_ip, dst_mac, src_mac, 21, 35001, 0, 2001, 0x18, file, 0x106), this._tcp(src_ip, dst_ip, src_mac, dst_mac, 35002, 20, 4000, 0, 0x18, data, 0x107)]; },
-    _sip_invite(flag, src_ip, dst_ip, src_mac, dst_mac) { let cid = "84f4d9af" + this._hex(flag).slice(0, 8), tag = "tag-" + this._hex(flag).slice(0, 12), uri = "sip:alice@corp.example.net", body = ["INVITE sip:alice@corp.example.net SIP/2.0", "Via: SIP/2.0/UDP 10.0.0.12:5060;branch=z9hG4bK" + cid, "Max-Forwards: 70", "To: <sip:alice@corp.example.net>", "From: \"bob\" <sip:bob@corp.example.net>;tag=" + tag, "Call-ID: " + cid, "CSeq: 201 INVITE", "Contact: <sip:bob@10.0.0.12:5060>", "Authorization: Digest username=\"bob\", realm=\"corp.example.net\", nonce=\"" + cid + "\", uri=\"" + uri + "\", response=\"" + this._b64(flag).slice(0, 24) + "\"", "Content-Type: application/sdp", "Content-Length: 144", "", "v=0\r\no=- 486401 1 IN IP4 10.0.0.12\r\ns=Phone Call\r\nc=IN IP4 10.0.0.12\r\nm=audio 5044 RTP/AVP 0 8\r\na=rtpmap:0 PCMU/8000\r\n"].join("\r\n"); let resp = ["SIP/2.0 200 OK", "Via: SIP/2.0/UDP 10.0.0.12:5060;branch=z9hG4bK" + cid, "From: \"bob\" <sip:bob@corp.example.net>;tag=" + tag, "To: <sip:alice@corp.example.net>;tag=77", "Call-ID: " + cid, "CSeq: 201 INVITE", "Contact: <sip:alice@10.0.0.20:5060>", "Content-Type: application/sdp", "Content-Length: 122", "", "v=0\r\no=- 486402 1 IN IP4 10.0.0.20\r\ns=Call Connected\r\nc=IN IP4 10.0.0.20\r\nm=audio 5052 RTP/AVP 0 8\r\na=rtpmap:0 PCMU/8000\r\n"].join("\r\n"); return [this._udp(src_ip, dst_ip, src_mac, dst_mac, 5060, 5060, this._u8(body), 0x200), this._udp(dst_ip, src_ip, dst_mac, src_mac, 5060, 5060, this._u8(resp), 0x201)]; },
-    _pcap(packets) { let n = 24 + packets.reduce((a, p) => a + 16 + p.length, 0), ba = new ArrayBuffer(n), v = new DataView(ba), o = 24; v.setUint32(0, 0xa1b2c3d4, true); v.setUint16(4, 2, true); v.setUint16(6, 4, true); v.setUint32(8, 0, true); v.setUint32(12, 0, true); v.setUint32(16, 65535, true); v.setUint32(20, 1, true); for (let i = 0; i < packets.length; i++) { let p = packets[i], l = p.length, t = this._ts(); v.setUint32(o, t.sec, true); v.setUint32(o + 4, t.usec, true); v.setUint32(o + 8, l, true); v.setUint32(o + 12, l, true); let b = new Uint8Array(ba, o + 16, l); b.set(p); o += 16 + l; } return ba; },
-    _viewer_hit(x, y) { if (!this.viewer_rows || !this.viewer_rows.length || !this.ctx || !this.canvas_el) return -1; let h = this.canvas_el.height || 360; let max_rows = Math.min(this.viewer_rows.length, 14); let row_h = Math.max(12, Math.min(18, (h - 50) / Math.max(max_rows, 1))); let content_h = 20 + max_rows * row_h, top = Math.max(8, Math.floor((h - content_h) / 2)); let left = 6; let hit = Math.floor((y - top - 20) / row_h); if (y < top + 20 || y > top + 20 + max_rows * row_h || x < left || x > this.canvas_el.width - 6) return -1; if (hit < 0 || hit >= max_rows) return -1; return this.viewer_rows[hit].flag ? hit : -1; },
-    _decode_ascii(bytes) { let out = ""; for (let i = 0; i < bytes.length; i++) { let b = bytes[i]; if (b >= 32 && b < 127) out += String.fromCharCode(b); else if (b === 9 || b === 10 || b === 13) out += String.fromCharCode(b); else out += "."; } return out; },
-    _packet_summary(packet, flag) { if (!packet || !packet.length) return { time: "--:--:--", src: "-", dst: "-", protocol: "RAW", info: "empty packet", flag: false }; let eth = packet; if (packet.length >= 14) { let ethertype = (eth[12] << 8) | eth[13]; if (ethertype !== 0x0800) return { time: "--:--:--", src: (Array.from(eth.slice(6, 12)).map((b) => b.toString(16).padStart(2, "0")).join(":")), dst: (Array.from(eth.slice(0, 6)).map((b) => b.toString(16).padStart(2, "0")).join(":")), protocol: "ETH", info: "EtherType 0x" + ethertype.toString(16).padStart(4, "0"), flag: !!(flag && String(flag).length > 0 && (String(flag).includes(flag) || false)) }; let ip = packet.slice(14); if (ip.length < 20) return { time: "--:--:--", src: "0.0.0.0", dst: "0.0.0.0", protocol: "IP", info: "Truncated IPv4", flag: false }; let version = ip[0] >> 4, ihl = (ip[0] & 0x0f) * 4, proto = ip[9], src = [ip[12], ip[13], ip[14], ip[15]].join("."), dst = [ip[16], ip[17], ip[18], ip[19]].join("."), payload = ip.slice(ihl); let protocol = proto === 6 ? "TCP" : proto === 17 ? "UDP" : proto === 1 ? "ICMP" : "IP"; let info = ""; if (proto === 6 && payload.length >= 20) { let sport = (payload[0] << 8) | payload[1], dport = (payload[2] << 8) | payload[3], data = payload.slice(20), text = this._decode_ascii(data.slice(0, 96)); if (dport === 80 || sport === 80) { info = (sport === 80 ? "HTTP response" : "HTTP request") + " " + (text.split(/\r?\n/)[0] || ""); } else if (dport === 443 || sport === 443) { info = "TLS " + (sport === 443 ? "client" : "server") + " on " + sport + "->" + dport; } else { info = "TCP " + sport + "->" + dport + " " + text.slice(0, 48); } } else if (proto === 17 && payload.length >= 8) { let sport = (payload[0] << 8) | payload[1], dport = (payload[2] << 8) | payload[3], data = payload.slice(8), text = this._decode_ascii(data.slice(0, 96)); if (dport === 53 || sport === 53) { let qname = ""; let offset = 12; for (let j = 0; j < 32 && offset < data.length; j++) { let len = data[offset]; if (len === 0) { offset++; break; } if (offset + 1 + len > data.length) break; qname += (j > 0 ? "." : "") + this._decode_ascii(data.slice(offset + 1, offset + 1 + len)).replace(/\.+/g, "."); offset += 1 + len; } info = "DNS " + (dport === 53 ? "query" : "response") + " " + qname; } else if (dport === 5353 || sport === 5353) { info = "mDNS " + text.slice(0, 64); } else { info = "UDP " + sport + "->" + dport + " " + text.slice(0, 48); } } else if (proto === 1 && payload.length >= 8) { let type = payload[0], code = payload[1], infoText = type === 8 ? "echo request" : type === 0 ? "echo reply" : "ICMP type " + type; info = infoText + " code=" + code; } else { info = "IPv4 proto=" + proto; } let flagHit = !!(flag && info.indexOf(flag) >= 0); return { time: "--:--:--", src, dst, protocol, info, flag: flagHit }; } return { time: "--:--:--", src: "-", dst: "-", protocol: "RAW", info: "Unparsed packet", flag: false }; },
-    _viewer_rows_for(flag, packets) { let rows = [], target = this.viewer_target || "http-response", packet_list = Array.isArray(packets) ? packets : [], display_packets = packet_list.slice(0, 18); for (let i = 0; i < display_packets.length; i++) { let packet = display_packets[i], data = this._packet_summary(packet, flag), info = data.info || "", target_hit = target === "http-credentials" && info.indexOf("HTTP request") >= 0 || target === "http-response" && info.indexOf("HTTP response") >= 0 || target === "dns-response" && info.indexOf("DNS response") >= 0 || target === "dns-exfil" && info.indexOf("DNS ") >= 0 || target === "icmp-trace" && data.protocol === "ICMP" || target === "sip-auth" && info.indexOf("UDP 5060->5060") >= 0 || target === "tls-header" && data.protocol === "TCP" && info.indexOf("443") >= 0 || target === "ftp-credentials" && data.protocol === "TCP" && (info.indexOf("35000->21") >= 0 || info.indexOf("21->35000") >= 0) || target === "http-trace" && info.indexOf("HTTP request") >= 0; if (target_hit && info.indexOf(flag) < 0) info += " | flag payload: " + flag; rows.push({ no: i + 1, time: data.time, src: data.src, dst: data.dst, protocol: data.protocol, info, length: packet.length || 0, flag: !!data.flag || target_hit, flag_value: flag || "FLAG{packet_sniffing_forensics}", hint: target_hit }); } if (!rows.length) { rows.push({ no: 1, time: "--:--:--", src: "0.0.0.0", dst: "0.0.0.0", protocol: "PCAP", info: "Awaiting packet generation", length: 0, flag: false, flag_value: flag || "FLAG{packet_sniffing_forensics}" }); } return rows; },
-    async gen(t) { let flag = this.use_image && this.f && this.f.files && this.f.files[0] ? (this.file_text || this._str(t || "")) : this._str(t || ""); if (!flag) flag = "FLAG{packet_sniffing_forensics}"; if (this.use_image && this.f && this.f.files && this.f.files[0] && !this.file_text) { let r = this.f.files[0], read = new FileReader(); await new Promise((resolve) => { read.onload = (ev) => { this.file_text = this._str(ev.target.result || ""); resolve(); }; read.readAsText(r); }); flag = this.file_text; } let d = this.difficulty_select ? this.difficulty_select.value : "easy", n = Number(this.noise_input ? this.noise_input.value : 48) || 48, noise = await this._noise(), packets = [], base = this._b64(flag), hex = this._hex(flag), mac1 = this._m8("00:11:22:33:44:55"), mac2 = this._m8("00:66:77:88:99:aa"), mac3 = this._m8("00:99:bb:cc:dd:ee"), mac4 = this._m8("00:12:34:56:78:9a"), db = ["http.example.net", "dns.example.net", "ftp.example.net", "sip.example.net"], forensic_tags = ["intercepted", "replayed", "exfiltrated", "retransmitted", "staged", "tampered", "misrouted", "forensic-sample"]; this.viewer_steps = ["1. Review the HTTP and DNS queries for the same hostnames and payload markers.", "2. Correlate the client and server addresses to identify the command-and-control and resolver hosts.", "3. Reassemble the exfiltrated fragments and decode the embedded flag string.", "4. Confirm the flag is present in the highlighted packet and verify it against the response metadata."]; if (d === "easy") { packets.push(this._http_req("GET", "/login?user=admin&token=" + base.slice(0, 12) + "&trace=" + hex.slice(0, 16), "app.example.net", ["X-Trace: " + hex.slice(0, 24), "Authorization: Bearer " + base.slice(0, 18), "Cookie: session=8dca91b6a3eb; theme=dark", "X-Forensics: " + forensic_tags[0]], "", "10.10.20.5", "203.0.113.5", mac1, mac2, 0x500)); packets.push(this._http_resp(200, "OK", ["Date: Tue, 11 Aug 2026 09:21:42 GMT", "Content-Length: 168", "Set-Cookie: session=8dca91b6a3eb; Path=/; HttpOnly", "X-Flag: " + flag, "X-Relay: " + forensic_tags[1]], "<html><body>Access granted for admin.</body></html>", "203.0.113.5", "10.10.20.5", mac2, mac1, 0x501)); packets.push(this._dns_query(0x42f1, "flag-" + base.slice(0, 8) + ".corp.example.net", 16, "10.10.20.5", "10.10.20.250", mac1, mac3, 0x502)); packets.push(this._dns_response(0x42f1, "flag-" + base.slice(0, 8) + ".corp.example.net", flag.slice(0, 63), "10.10.20.250", "10.10.20.5", mac3, mac1, 0x503)); } else if (d === "intermediate") { for (let i = 0; i < 6; i++) { let qn = "chunk" + i + "." + base.slice(0, 10) + "." + db[i % db.length]; packets.push(this._dns_query(0x7000 + i, qn, 16, "10.10.20.7", "10.10.20.250", mac4, mac3, 0x600 + i)); packets.push(this._dns_response(0x7000 + i, qn, this._corrupt(base.slice(i * 3, i * 3 + 24), Number(this.corruption_sld ? this.corruption_sld.value : 25)), "10.10.20.250", "10.10.20.7", mac3, mac4, 0x620 + i)); packets.push(this._icmp_echo(8, 0, 0x1000 + i, 200 + i, "10.10.20.7", "10.10.20.250", mac4, mac3, this._u8("forensic-trace=relay " + i), 0x650 + i)); } packets.push(...this._sip_invite(flag, "10.10.20.12", "10.10.20.20", mac1, mac3)); } else { let b = this._u8(flag); for (let i = 0; i < Math.min(b.length, 16); i++) { let msg = this._corrupt(noise[i % noise.length] + " " + i, Number(this.corruption_sld ? this.corruption_sld.value : 25)); packets.push(this._tcp("10.10.30." + (i % 10 + 1), "10.10.40." + ((i % 8) + 1), mac2, mac1, 50000 + i, 443, 100000 + i * 777, 0, 0x02, this._u8(msg), b[i])); } } for (let i = 0; i < n; i++) { let s = noise[i % noise.length] || "relay telemetry", x = this._corrupt(s + " " + i, Number(this.corruption_sld ? this.corruption_sld.value : 25)), step = i % 5; if (step === 0) packets.push(this._dns_query(0x8000 + i, "rumor-" + i + "." + db[i % db.length], 16, "10.10.20." + ((i % 9) + 1), "10.10.20.250", mac1, mac2, 0x900 + i)); else if (step === 1) packets.push(this._http_req("POST", "/api/collect?tag=" + forensic_tags[i % forensic_tags.length] + "&m=" + this._hex(String(i)), "api.example.net", ["X-Trace: " + hex.slice(0, 12), "Accept-Encoding: gzip", "X-Flow-Id: " + (0x1000 + i).toString(16), "X-Session: " + this._b64(x.slice(0, 16))], this._corrupt("payload=" + x.slice(0, 96) + "\n" + flag.slice(0, 24), Number(this.corruption_sld ? this.corruption_sld.value : 25)), "10.10.20." + ((i % 12) + 2), "198.51.100." + ((i % 10) + 1), mac4, mac3, 0x1000 + i)); else if (step === 2) packets.push(this._udp("10.10.20." + ((i % 10) + 3), "10.10.20." + ((i % 8) + 5), mac3, mac4, 5060 + (i % 5), 5060 + (i % 3), this._u8("INVITE sip:server@example.net SIP/2.0\r\nVia: SIP/2.0/UDP 10.10.20.18:5060\r\nCSeq: " + (100 + i) + " INVITE\r\n\r\n" + x.slice(0, 64)), 0x1100 + i)); else if (step === 3) packets.push(this._icmp_echo(8, 0, 0x2000 + i, 300 + i, "10.10.20." + ((i % 7) + 4), "10.10.20.250", mac1, mac3, this._u8("echo " + forensic_tags[i % forensic_tags.length] + " " + x.slice(0, 32)), 0x1200 + i)); else packets.push(...this._ftp_session(flag, "10.10.20.8", "10.10.20.66", mac4, mac2)); } packets.push(...this._ftp_session(flag, "10.10.20.8", "10.10.20.66", mac4, mac2)); packets.push(this._http_req("GET", "/forensics/trace?session=" + this._b64(flag.slice(0, 20)) + "&tag=" + forensic_tags[2], "forensics.internal", ["X-Trace: " + hex.slice(0, 16), "X-Source: 10.10.20.8", "X-Destination: 10.10.20.66"], "", "10.10.20.8", "10.10.20.66", mac4, mac2, 0x1300)); packets.push(this._http_resp(200, "OK", ["Date: Tue, 11 Aug 2026 09:21:49 GMT", "Content-Length: 96", "X-Case: forensic-review"], "<html><body>analysis complete</body></html>", "10.10.20.66", "10.10.20.8", mac2, mac4, 0x1301)); let mdsn = this._corrupt("mDNS forensic relay " + flag.slice(0, 24), Number(this.corruption_sld ? this.corruption_sld.value : 25)); packets.push(this._udp("10.10.20.250", "224.0.0.1", mac3, this._m8("ff:ff:ff:ff:ff:ff"), 5353, 5353, this._u8(mdsn.slice(0, 48)), 0x1400)); this.viewer_rows = this._viewer_rows_for(flag); this.buffer = this._pcap(packets); this.b = new Blob([this.buffer], { type: "application/vnd/tcpdump.pcap" }); return this.buffer; },
-    save() { if (!this.buffer) return; let u = URL.createObjectURL(this.b || new Blob([this.buffer], { type: "application/vnd.tcpdump.pcap" })), a = document.createElement("a"); a.href = u; a.download = "challenge.pcap"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 0); },
-    draw() {
-        if (!this.ctx || !this.canvas_el) return;
-        if (this.buffer && this.viewer_rows && this.viewer_rows.length <= 1) {
-            let parsed = [], view = new DataView(this.buffer), offset = 24;
-            while (offset + 16 <= this.buffer.byteLength && parsed.length < 18) {
-                let length = view.getUint32(offset + 8, true);
-                if (!length || offset + 16 + length > this.buffer.byteLength) break;
-                parsed.push(new Uint8Array(this.buffer.slice(offset + 16, offset + 16 + length)));
-                offset += 16 + length;
-            }
-            if (parsed.length) this.viewer_rows = this._viewer_rows_for(this.viewer_rows[0].flag_value || "FLAG{packet_sniffing_forensics}", parsed);
-        }
-        let w = this.canvas_el.width, h = this.canvas_el.height, rows = (this.viewer_rows || []).slice(0, 14), hover = this.viewer_hover >= 0 && this.viewer_rows ? this.viewer_rows[this.viewer_hover] : null;
-        let max_rows = Math.min(rows.length, 14), row_h = Math.max(12, Math.min(18, (h - 50) / Math.max(max_rows, 1))), content_h = 20 + max_rows * row_h, top = Math.max(8, Math.floor((h - content_h) / 2));
-        this.ctx.clearRect(0, 0, w, h);
-        this.ctx.fillStyle = "#071114";
-        this.ctx.fillRect(0, 0, w, h);
-        this.ctx.strokeStyle = "#1a3439";
-        this.ctx.lineWidth = 1;
-        this.ctx.fillStyle = "#d9f5ff";
-        this.ctx.font = "11px monospace";
-        let start_x = 8, col_w = [26, 55, 70, 75, 50, 400];
-        let x = start_x;
-        this.ctx.fillText("No.", x, top + 14); x += col_w[0]; this.ctx.fillText("Time", x, top + 14); x += col_w[1]; this.ctx.fillText("Src", x, top + 14); x += col_w[2]; this.ctx.fillText("Dst", x, top + 14); x += col_w[3]; this.ctx.fillText("Proto", x, top + 14); x += col_w[4]; this.ctx.fillText("Info", x, top + 14);
-        for (let i = 0; i < rows.length; i++) {
-            let r = rows[i], y = top + 20 + i * row_h;
-            let selected = !!r.flag;
-            if (selected) this.ctx.fillStyle = "rgba(255, 204, 0, 0.18)"; else this.ctx.fillStyle = i % 2 === 0 ? "rgba(18, 34, 50, 0.9)" : "rgba(10, 24, 30, 0.9)";
-            this.ctx.fillRect(6, y - 10, w - 12, row_h - 2);
-            if (hover && hover === r) this.ctx.strokeStyle = "#ffdb4d"; else this.ctx.strokeStyle = selected ? "#f4c542" : "#213d46";
-            this.ctx.strokeRect(6, y - 10, w - 12, row_h - 2);
-            this.ctx.fillStyle = selected ? "#fff3b0" : "#dfeef7";
-            let cx = start_x;
-            this.ctx.fillText(String(r.no), cx, y);
-            cx += col_w[0]; this.ctx.fillText(r.time, cx, y);
-            cx += col_w[1]; this.ctx.fillText(r.src, cx, y);
-            cx += col_w[2]; this.ctx.fillText(r.dst, cx, y);
-            cx += col_w[3]; this.ctx.fillText(r.protocol, cx, y);
-            cx += col_w[4]; let info = r.info || ""; if (r.flag && r.flag_value) {
-                let index = info.indexOf(r.flag_value);
-                if (index >= 0) {
-                    let prefix = info.slice(0, index), suffix = info.slice(index + r.flag_value.length), x0 = cx, width_prefix = this.ctx.measureText(prefix).width;
-                    let max_w = w - x0 - 12;
-                    if (this.ctx.measureText(info).width > max_w) {
-                        let keep = info;
-                        while (keep.length > 0 && this.ctx.measureText(keep + "...").width > max_w) keep = keep.slice(0, -1);
-                        info = keep + "...";
-                        let newIndex = info.indexOf(r.flag_value);
-                        if (newIndex >= 0) { prefix = info.slice(0, newIndex); suffix = info.slice(newIndex + r.flag_value.length); } else { prefix = info; suffix = ""; }
-                    }
-                    this.ctx.fillStyle = "#dfeef7"; this.ctx.fillText(prefix, x0, y);
-                    let x1 = x0 + width_prefix;
-                    this.ctx.fillStyle = "#ffde59"; this.ctx.fillText(r.flag_value, x1, y);
-                    this.ctx.fillStyle = "#dfeef7"; this.ctx.fillText(suffix, x1 + this.ctx.measureText(r.flag_value).width, y);
-                } else {
-                    this.ctx.fillStyle = selected ? "#fff3b0" : "#dfeef7"; let max_w = w - cx - 12; let text = info; while (text.length > 0 && this.ctx.measureText(text + "...").width > max_w) text = text.slice(0, -1); if (text.length < info.length) text += "..."; this.ctx.fillText(text, cx, y);
-                }
-            } else {
-                this.ctx.fillStyle = selected ? "#fff3b0" : "#dfeef7"; let max_w = w - cx - 12; let text = info; while (text.length > 0 && this.ctx.measureText(text + "...").width > max_w) text = text.slice(0, -1); if (text.length < info.length) text += "..."; this.ctx.fillText(text, cx, y);
-            }
-        }
-        if (hover && hover.flag) {
-            let max_rows = Math.min(this.viewer_rows.length, 14);
-            let row_h = Math.max(12, Math.min(18, (h - 50) / Math.max(max_rows, 1)));
-            let content_h = 20 + max_rows * row_h;
-            let content_top = Math.max(8, Math.floor((h - content_h) / 2));
-            let box_w = 440, box_h = 110;
-            let box_x = Math.min(w - box_w - 12, 8);
-            let hovered_y = content_top + 20 + this.viewer_hover * row_h + row_h / 2;
-            let box_y = Math.min(hovered_y - 60, h - box_h - 8);
-            box_y = Math.max(content_top + 8, box_y);
-            this.ctx.fillStyle = "rgba(6, 18, 24, 0.94)";
-            this.ctx.fillRect(box_x, box_y, box_w, box_h);
-            this.ctx.strokeStyle = "#ffe070";
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(box_x, box_y, box_w, box_h);
-            this.ctx.lineWidth = 1;
-            this.ctx.fillStyle = "#fff6b2"; this.ctx.font = "bold 12px monospace"; this.ctx.fillText("Flag pointer: " + hover.flag_value, box_x + 12, box_y + 22);
-            this.ctx.fillStyle = "#ffdb4d"; this.ctx.font = "11px monospace"; this.ctx.fillText("Look for: " + (this.hint_select ? this.hint_select.options[this.hint_select.selectedIndex].text : "the highlighted packet"), box_x + 12, box_y + 37);
-            this.ctx.fillStyle = "#dfeef7"; this.ctx.font = "11px monospace"; for (let i = 0; i < this.viewer_steps.length; i++) { this.ctx.fillText(this.viewer_steps[i], box_x + 12, box_y + 57 + i * 15); }
-        }
+        canvas_el.style.cursor = 'default';
+      });
     }
+    i.type = 'file';
+    i.accept = '.txt,.json,.bin,.pcap';
+    i.style.display = 'none';
+    l.type = 'button';
+    l.textContent = 'Upload Payload File';
+    l.onclick = () => i.click();
+    n.textContent = 'No file';
+    n.style.marginLeft = '6px';
+    i.onchange = (ev) => {
+      let file = ev.target.files[0];
+      if (!file) return;
+      let reader = new FileReader();
+      n.textContent = file.name;
+      reader.onload = (res) => {
+        this.file_text = String(res.target.result || '').trim();
+        this.use_image = Boolean(this.file_text);
+        if (window.generate_grid) window.generate_grid();
+      };
+      reader.readAsText(file);
+    };
+    u.style.cssText = 'display:flex;align-items:center;gap:4px;flex-wrap:wrap;';
+    u.append(l, n);
+    r.className = 'mb-5 w-100';
+    r.style.cssText = 'display:none;width:100%;margin-top:8px;';
+    d.className = 'mb-5 w-100';
+    d.innerHTML = '<option value="easy">Easy (Plaintext Protocols)</option><option value="intermediate">Intermediate (Encoded & Split)</option><option value="hard">Hard (Stego & Covert Channels)</option>';
+    d.onchange = () => {
+      this.difficulty = d.value;
+      this._set_hint_options();
+      if (window.generate_grid) window.generate_grid();
+    };
+    this.difficulty_select = d;
+    a.textContent = 'Difficulty:';
+    v.textContent = 'Puzzle Variant:';
+    h.className = 'mb-5 w-100';
+    this.hint_select = h;
+    h.onchange = () => {
+      this.viewer_target = h.value;
+      if (window.generate_grid) window.generate_grid();
+    };
+    x.textContent = 'Decoy Packet Count:';
+    y.type = 'number';
+    y.min = '12';
+    y.max = '512';
+    y.value = '48';
+    y.className = 'w-100';
+    y.onchange = () => { if (window.generate_grid) window.generate_grid(); };
+    q.type = 'checkbox';
+    q.id = 'pcap-cascadia';
+    q.onchange = () => { if (window.generate_grid) window.generate_grid(); };
+    e.textContent = 'Use Cascadia news/rumours';
+    e.htmlFor = q.id;
+    g.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    g.append(q, e);
+    z.className = 'w-100';
+    z.rows = '3';
+    z.placeholder = 'Custom decoy lines (one per line)';
+    w.textContent = 'Decoy Signal Corruption:';
+    s.type = 'range';
+    s.min = '0';
+    s.max = '100';
+    s.value = '15';
+    s.className = 'w-100';
+    s.onchange = () => { if (window.generate_grid) window.generate_grid(); };
+    o.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+    o.append(a, d, v, h, x, y, g, z, w, s, u);
+    r.appendChild(o);
+    if (p) p.appendChild(r);
+    this.noise_input = y;
+    this.cascadia_cb = q;
+    this.custom_noise = z;
+    this.corruption_sld = s;
+    this.file_text = '';
+    this.difficulty = d.value;
+    this._set_hint_options();
+  },
+
+  _variants() {
+    return {
+      easy: [
+        ['random', 'Random (Any Easy Variant)'],
+        ['http-auth', 'HTTP 200 OK Header & Body'],
+        ['ftp-transfer', 'FTP Cleartext File Transfer'],
+        ['irc-chat', 'IRC Operator Channel Chatter'],
+        ['smtp-mail', 'SMTP Intercepted Email'],
+        ['dns-txt', 'DNS TXT Record Lookup']
+      ],
+      intermediate: [
+        ['random', 'Random (Any Intermediate Variant)'],
+        ['http-b64', 'HTTP Base64 Auth & Cookie'],
+        ['dns-exfil', 'DNS Subdomain Hex Exfiltration'],
+        ['icmp-carve', 'ICMP Ping Sequence Carving'],
+        ['sip-digest', 'SIP VoIP Digest & SDP Key'],
+        ['tcp-reassemble', 'TCP Segmented Hex Stream']
+      ],
+      hard: [
+        ['random', 'Random (Any Hard Variant)'],
+        ['ip-id', 'IPv4 Identification Header Stego'],
+        ['ip-ttl', 'IPv4 TTL ASCII Covert Channel'],
+        ['tcp-urg', 'TCP Urgent Pointer Stego'],
+        ['xor-otp', 'UDP XOR Key-Stream Pair'],
+        ['port-knock', 'UDP Source Port Knocking']
+      ]
+    };
+  },
+
+  _set_hint_options() {
+    if (!this.hint_select) return;
+    let list = this._variants()[this.difficulty] || this._variants().easy;
+    this.hint_select.innerHTML = '';
+    for (let i = 0; i < list.length; i++) {
+      let opt = document.createElement('option');
+      opt.value = list[i][0];
+      opt.textContent = list[i][1];
+      this.hint_select.appendChild(opt);
+    }
+    this.viewer_target = this.hint_select.value;
+  },
+
+  show() { if (this.r) this.r.style.display = 'block'; },
+  hide() { if (this.r) this.r.style.display = 'none'; },
+  set_image_mode(enabled) {
+    this.use_image = enabled;
+    this.show();
+  },
+  generate(t) { return this.gen(t); },
+  _str(v) { return String(v || ''); },
+  _u8(s) { return new TextEncoder().encode(this._str(s)); },
+  _hex(v) { return Array.from(this._u8(v)).map(b => b.toString(16).padStart(2, '0')).join(''); },
+  _b64(v) { return btoa(unescape(encodeURIComponent(this._str(v)))); },
+  _ip32(v) {
+    let a = this._str(v).split('.').map(x => parseInt(x, 10) || 0);
+    return ((a[0] << 24) | (a[1] << 16) | (a[2] << 8) | a[3]) >>> 0;
+  },
+  _csum(b) {
+    let s = 0;
+    for (let i = 0; i < b.length; i += 2) s += (b[i] << 8) + (i + 1 < b.length ? b[i + 1] : 0);
+    while (s > 0xffff) s = (s & 0xffff) + (s >>> 16);
+    return (~s) & 0xffff;
+  },
+  _m8(v) { return new Uint8Array(v.split(':').map(x => parseInt(x, 16) || 0)); },
+  _dns_name(s) {
+    let o = [], k = this._str(s).replace(/^\.+|\.+$/g, '').split('.');
+    for (let i = 0; i < k.length; i++) {
+      let p = k[i].slice(0, 63);
+      if (!p) continue;
+      o.push(p.length);
+      for (let j = 0; j < p.length; j++) o.push(p.charCodeAt(j));
+    }
+    o.push(0);
+    return new Uint8Array(o);
+  },
+  _corrupt(s, p) {
+    let o = '', x = this._str(s), y = '@#$%&*+=~^', v = Math.max(0, Math.min(1, Number(p || 0) / 100));
+    for (let i = 0; i < x.length; i++) {
+      let c = x[i];
+      o += (c !== '\n' && c !== '\r' && Math.random() < v * 0.4) ? y[Math.floor(Math.random() * y.length)] : c;
+    }
+    return o;
+  },
+  async _noise() {
+    let n = [];
+    if (this.cascadia_cb && this.cascadia_cb.checked) {
+      try {
+        let u = './json/' + encodeURI("CPU - Weaver's Webway - news-rumors-cascadia-ic [982709436881723442].json");
+        let r = await fetch(u);
+        if (r && r.ok) {
+          let d = await r.json();
+          if (d && Array.isArray(d.messages)) {
+            for (let i = 0; i < d.messages.length; i++) {
+              if (d.messages[i] && d.messages[i].content) n.push(String(d.messages[i].content).replace(/\s+/g, ' ').slice(0, 90));
+            }
+          }
+        }
+      } catch (e) {}
+    }
+    if (this.custom_noise && this.custom_noise.value) {
+      n = n.concat(this.custom_noise.value.split(/\r?\n/).map(x => x.trim()).filter(Boolean));
+    }
+    if (!n.length) {
+      n = [
+        'Cascadia sector 4 relay heartbeat nominal',
+        'Webway node sync drift 0.04ms',
+        'Harbor subnet routing table updated',
+        'Telemetry collector ack from spire-02',
+        'Unidentified carrier wave on sub-channel 9',
+        'Grid transformer load balancing active',
+        'Encrypted proxy handshake completed',
+        'Automated weather drone beacon 10.20.4.8'
+      ];
+    }
+    return n;
+  },
+
+  _eth(src_mac, dst_mac, proto, payload) {
+    let b = new Uint8Array(14 + payload.length), v = new DataView(b.buffer);
+    for (let i = 0; i < 6; i++) {
+      b[i] = dst_mac[i];
+      b[i + 6] = src_mac[i];
+    }
+    v.setUint16(12, proto, false);
+    b.set(payload, 14);
+    return b;
+  },
+
+  _ipv4(src_ip, dst_ip, proto, payload, id = 0, ttl = 64) {
+    let b = new Uint8Array(20 + payload.length), v = new DataView(b.buffer);
+    v.setUint8(0, 0x45);
+    v.setUint16(2, 20 + payload.length, false);
+    v.setUint16(4, id & 0xffff, false);
+    v.setUint16(6, 0x4000, false);
+    v.setUint8(8, ttl & 0xff);
+    v.setUint8(9, proto);
+    v.setUint32(12, this._ip32(src_ip), false);
+    v.setUint32(16, this._ip32(dst_ip), false);
+    v.setUint16(10, this._csum(b.subarray(0, 20)), false);
+    b.set(payload, 20);
+    return b;
+  },
+
+  _l4_csum(src_ip, dst_ip, proto, seg) {
+    let b = new Uint8Array(12 + seg.length), d = new DataView(b.buffer);
+    d.setUint32(0, this._ip32(src_ip), false);
+    d.setUint32(4, this._ip32(dst_ip), false);
+    d.setUint8(9, proto);
+    d.setUint16(10, seg.length, false);
+    b.set(seg, 12);
+    return this._csum(b);
+  },
+
+  _tcp(src_ip, dst_ip, smac, dmac, sport, dport, seq, ack, flags, payload, id = 0, urg = 0, ttl = 64) {
+    let p = payload instanceof Uint8Array ? payload : this._u8(payload);
+    let h = new Uint8Array(20 + p.length), v = new DataView(h.buffer);
+    v.setUint16(0, sport, false);
+    v.setUint16(2, dport, false);
+    v.setUint32(4, seq >>> 0, false);
+    v.setUint32(8, ack >>> 0, false);
+    v.setUint8(12, 0x50);
+    v.setUint8(13, flags);
+    v.setUint16(14, 0x4000, false);
+    v.setUint16(18, urg & 0xffff, false);
+    h.set(p, 20);
+    v.setUint16(16, this._l4_csum(src_ip, dst_ip, 6, h), false);
+    return this._eth(smac, dmac, 0x0800, this._ipv4(src_ip, dst_ip, 6, h, id, ttl));
+  },
+
+  _udp(src_ip, dst_ip, smac, dmac, sport, dport, payload, id = 0, ttl = 64) {
+    let p = payload instanceof Uint8Array ? payload : this._u8(payload);
+    let h = new Uint8Array(8 + p.length), v = new DataView(h.buffer);
+    v.setUint16(0, sport, false);
+    v.setUint16(2, dport, false);
+    v.setUint16(4, 8 + p.length, false);
+    h.set(p, 8);
+    v.setUint16(6, this._l4_csum(src_ip, dst_ip, 17, h), false);
+    return this._eth(smac, dmac, 0x0800, this._ipv4(src_ip, dst_ip, 17, h, id, ttl));
+  },
+
+  _icmp(type, code, id, seq, src_ip, dst_ip, smac, dmac, payload, ip_id = 0, ttl = 64) {
+    let p = payload instanceof Uint8Array ? payload : this._u8(payload);
+    let h = new Uint8Array(8 + p.length), v = new DataView(h.buffer);
+    v.setUint8(0, type);
+    v.setUint8(1, code);
+    v.setUint16(4, id & 0xffff, false);
+    v.setUint16(6, seq & 0xffff, false);
+    h.set(p, 8);
+    v.setUint16(2, this._csum(h), false);
+    return this._eth(smac, dmac, 0x0800, this._ipv4(src_ip, dst_ip, 1, h, ip_id, ttl));
+  },
+
+  _dns_q(id, qname, qtype, src_ip, dst_ip, smac, dmac, ip_id) {
+    let q = this._dns_name(qname), b = new Uint8Array(16 + q.length), v = new DataView(b.buffer);
+    v.setUint16(0, id, false);
+    v.setUint16(2, 0x0100, false);
+    v.setUint16(4, 1, false);
+    b.set(q, 12);
+    v.setUint16(12 + q.length, qtype, false);
+    v.setUint16(14 + q.length, 1, false);
+    return this._udp(src_ip, dst_ip, smac, dmac, 53100 + (id & 0xff), 53, b, ip_id);
+  },
+
+  _dns_r(id, qname, txt, src_ip, dst_ip, smac, dmac, ip_id) {
+    let q = this._dns_name(qname), t = this._u8(txt.slice(0, 250));
+    let b = new Uint8Array(29 + q.length + t.length), v = new DataView(b.buffer);
+    v.setUint16(0, id, false);
+    v.setUint16(2, 0x8180, false);
+    v.setUint16(4, 1, false);
+    v.setUint16(6, 1, false);
+    b.set(q, 12);
+    v.setUint16(12 + q.length, 16, false);
+    v.setUint16(14 + q.length, 1, false);
+    let o = 16 + q.length;
+    b[o] = 0xc0;
+    b[o + 1] = 0x0c;
+    v.setUint16(o + 2, 16, false);
+    v.setUint16(o + 4, 1, false);
+    v.setUint32(o + 6, 120, false);
+    v.setUint16(o + 10, t.length + 1, false);
+    b[o + 12] = t.length;
+    b.set(t, o + 13);
+    return this._udp(dst_ip, src_ip, dmac, smac, 53, 53100 + (id & 0xff), b, ip_id);
+  },
+
+  _build_puzzle(mode, flag, m1, m2, m3) {
+    let pkts = [], steps = [], filter = '', label = mode;
+    let b64 = this._b64(flag), hex = this._hex(flag), u8 = this._u8(flag);
+    if (mode === 'http-auth') {
+      label = 'HTTP 200 OK Header & Body';
+      filter = 'http';
+      steps = ['1. Filter Wireshark by "http".', '2. Inspect the HTTP/1.1 200 OK response from 203.0.113.10.', '3. Read the X-Cascadia-Key header or JSON body for the flag.'];
+      let req = 'POST /api/v1/uplink HTTP/1.1\r\nHost: relay.cascadia.net\r\nUser-Agent: WebwayClient/2.4\r\nContent-Type: application/json\r\n\r\n{"node":"spire-04","action":"sync"}';
+      let body = '{"status":"authenticated","flag":"' + flag + '"}';
+      let res = 'HTTP/1.1 200 OK\r\nServer: cascadia-gw/1.9\r\nContent-Type: application/json\r\nX-Cascadia-Key: ' + flag + '\r\nContent-Length: ' + body.length + '\r\n\r\n' + body;
+      pkts.push(this._tcp('10.10.20.14', '203.0.113.10', m1, m2, 51420, 80, 1000, 1, 0x18, req, 0x301));
+      pkts.push(this._tcp('203.0.113.10', '10.10.20.14', m2, m1, 80, 51420, 1, 1000 + req.length, 0x18, res, 0x302));
+    } else if (mode === 'ftp-transfer') {
+      label = 'FTP Cleartext File Transfer';
+      filter = 'ftp || ftp-data';
+      steps = ['1. Filter by "ftp || ftp-data" or "tcp.port == 21 || tcp.port == 20".', '2. Follow the FTP login and RETR clearance_key.txt command.', '3. Open the FTP-DATA packet on port 20 to read the flag.'];
+      pkts.push(this._tcp('10.10.20.66', '10.10.20.22', m2, m1, 21, 49200, 1, 1, 0x18, '220 archive.cascadia.net FTP ready\r\n', 0x310));
+      pkts.push(this._tcp('10.10.20.22', '10.10.20.66', m1, m2, 49200, 21, 1, 37, 0x18, 'USER netrunner\r\n', 0x311));
+      pkts.push(this._tcp('10.10.20.66', '10.10.20.22', m2, m1, 21, 49200, 37, 17, 0x18, '230 Login successful\r\n', 0x312));
+      pkts.push(this._tcp('10.10.20.22', '10.10.20.66', m1, m2, 49200, 21, 17, 59, 0x18, 'RETR clearance_key.txt\r\n', 0x313));
+      pkts.push(this._tcp('10.10.20.66', '10.10.20.22', m2, m1, 20, 49201, 500, 1, 0x18, 'CASCADIA CLEARANCE MANIFEST\r\nTOKEN: ' + flag + '\r\n', 0x314));
+    } else if (mode === 'irc-chat') {
+      label = 'IRC Operator Channel Chatter';
+      filter = 'irc || tcp.port == 6667';
+      steps = ['1. Filter by "irc" or "tcp.port == 6667".', '2. Right-click -> Follow -> TCP Stream on #weavers-ops.', '3. Read the operator PRIVMSG exchange containing the flag.'];
+      pkts.push(this._tcp('10.10.20.31', '10.10.20.99', m1, m3, 52667, 6667, 100, 1, 0x18, 'JOIN #weavers-ops\r\n', 0x320));
+      pkts.push(this._tcp('10.10.20.99', '10.10.20.31', m3, m1, 6667, 52667, 1, 119, 0x18, ':kestrel!op@cascadia PRIVMSG #weavers-ops :Did you rotate the relay cipher?\r\n', 0x321));
+      pkts.push(this._tcp('10.10.20.31', '10.10.20.99', m1, m3, 52667, 6667, 119, 80, 0x18, 'PRIVMSG #weavers-ops :Affirmative, active key is ' + flag + '\r\n', 0x322));
+    } else if (mode === 'smtp-mail') {
+      label = 'SMTP Intercepted Email';
+      filter = 'smtp || tcp.port == 25';
+      steps = ['1. Filter by "smtp" or "tcp.port == 25".', '2. Inspect the DATA payload sent from director@cascadia.net.', '3. Read the emergency dispatch body to extract the flag.'];
+      pkts.push(this._tcp('10.10.20.25', '10.10.20.44', m2, m1, 25, 50025, 1, 1, 0x18, '220 mail.cascadia.net ESMTP\r\n', 0x330));
+      pkts.push(this._tcp('10.10.20.44', '10.10.20.25', m1, m2, 50025, 25, 1, 30, 0x18, 'MAIL FROM:<director@cascadia.net>\r\nRCPT TO:<cell-09@cascadia.net>\r\nDATA\r\n', 0x331));
+      pkts.push(this._tcp('10.10.20.44', '10.10.20.25', m1, m2, 50025, 25, 74, 30, 0x18, 'Subject: Priority Override\r\n\r\nAuthenticate terminal with: ' + flag + '\r\n.\r\n', 0x332));
+    } else if (mode === 'dns-txt') {
+      label = 'DNS TXT Record Lookup';
+      filter = 'dns.qry.type == 16';
+      steps = ['1. Filter by "dns.qry.type == 16" (TXT records).', '2. Locate the query for _token.webway.cascadia.net.', '3. Read the TXT record string in the DNS response.'];
+      pkts.push(this._dns_q(0x4a21, '_token.webway.cascadia.net', 16, '10.10.20.18', '10.10.20.250', m1, m3, 0x340));
+      pkts.push(this._dns_r(0x4a21, '_token.webway.cascadia.net', flag, '10.10.20.250', '10.10.20.18', m1, m3, 0x341));
+    } else if (mode === 'http-b64') {
+      label = 'HTTP Base64 Auth & Cookie';
+      filter = 'http';
+      steps = ['1. Filter by "http" and inspect GET /vault/telemetry.', '2. Copy the Base64 token from Authorization or Set-Cookie.', '3. Base64-decode "' + b64 + '" to get the flag.'];
+      let req = 'GET /vault/telemetry HTTP/1.1\r\nHost: vault.cascadia.net\r\nAuthorization: Bearer ' + b64 + '\r\n\r\n';
+      let res = 'HTTP/1.1 200 OK\r\nSet-Cookie: webway_session=' + b64 + '; HttpOnly\r\nContent-Type: application/json\r\n\r\n{"token_b64":"' + b64 + '"}';
+      pkts.push(this._tcp('10.10.20.19', '198.51.100.42', m1, m2, 54080, 80, 500, 1, 0x18, req, 0x401));
+      pkts.push(this._tcp('198.51.100.42', '10.10.20.19', m2, m1, 80, 54080, 1, 500 + req.length, 0x18, res, 0x402));
+    } else if (mode === 'dns-exfil') {
+      label = 'DNS Subdomain Hex Exfiltration';
+      filter = 'dns.qry.name contains "exfil.cascadia.net"';
+      steps = ['1. Filter by: dns.qry.name contains "exfil.cascadia.net"', '2. Sort queries p0, p1, p2... and join the hex subdomain chunks.', '3. Hex-decode "' + hex + '" to recover the flag.'];
+      for (let i = 0; i < hex.length; i += 12) {
+        let idx = Math.floor(i / 12), chunk = hex.slice(i, i + 12);
+        let qn = 'p' + idx + '.' + chunk + '.exfil.cascadia.net';
+        pkts.push(this._dns_q(0x7100 + idx, qn, 16, '10.10.20.7', '10.10.20.250', m1, m3, 0x410 + idx));
+      }
+    } else if (mode === 'icmp-carve') {
+      label = 'ICMP Ping Sequence Carving';
+      filter = 'icmp && ip.src == 10.10.20.77';
+      steps = ['1. Filter by "icmp && ip.src == 10.10.20.77".', '2. Inspect each Echo Request payload in order of Sequence Number.', '3. Concatenate the 4-byte chunks after "SYNC|" to assemble the flag.'];
+      for (let i = 0; i < flag.length; i += 4) {
+        let idx = Math.floor(i / 4), part = flag.slice(i, i + 4);
+        pkts.push(this._icmp(8, 0, 0x2200, 100 + idx, '10.10.20.77', '10.10.20.250', m1, m3, 'SYNC|' + part, 0x430 + idx));
+      }
+    } else if (mode === 'sip-digest') {
+      label = 'SIP VoIP Digest & SDP Key';
+      filter = 'sip || udp.port == 5060';
+      steps = ['1. Filter by "sip" or "udp.port == 5060".', '2. Inspect the INVITE Authorization header or SDP a=key-b64 attribute.', '3. Decode the hex nonce or Base64 SDP key to reveal the flag.'];
+      let msg = [
+        'INVITE sip:console@cascadia.net SIP/2.0',
+        'Via: SIP/2.0/UDP 10.10.20.12:5060;branch=z9hG4bK99a',
+        'From: "operator" <sip:op@cascadia.net>;tag=881',
+        'To: <sip:console@cascadia.net>',
+        'Call-ID: ' + hex.slice(0, 16) + '@10.10.20.12',
+        'CSeq: 101 INVITE',
+        'Authorization: Digest username="op", realm="cascadia.net", nonce="' + hex + '", response="' + b64 + '"',
+        'Content-Type: application/sdp',
+        '',
+        'v=0\r\ns=Webway VoIP\r\na=key-b64:' + b64 + '\r\n'
+      ].join('\r\n');
+      pkts.push(this._udp('10.10.20.12', '10.10.20.20', m1, m3, 5060, 5060, msg, 0x450));
+    } else if (mode === 'tcp-reassemble') {
+      label = 'TCP Segmented Hex Stream';
+      filter = 'tcp.port == 8443';
+      steps = ['1. Filter by "tcp.port == 8443" and Follow TCP Stream.', '2. Combine the "frag" hex strings in order of "part".', '3. Convert the combined hex string "' + hex + '" to ASCII.'];
+      let seq = 1000;
+      for (let i = 0; i < hex.length; i += 8) {
+        let idx = Math.floor(i / 8), frag = '{"part":' + idx + ',"frag":"' + hex.slice(i, i + 8) + '"}\n';
+        pkts.push(this._tcp('10.10.20.55', '10.10.20.88', m1, m2, 58443, 8443, seq, 1, 0x18, frag, 0x460 + idx));
+        seq += frag.length;
+      }
+    } else if (mode === 'ip-id') {
+      label = 'IPv4 Identification Header Stego';
+      filter = 'ip.src == 10.10.30.9 && tcp.dstport == 443';
+      steps = ['1. Filter by "ip.src == 10.10.30.9 && tcp.dstport == 443".', '2. Look at the IPv4 Identification (ip.id) field of each SYN packet.', '3. Each ip.id is 0x1300 + ASCII byte; read the low hex bytes as ASCII.'];
+      for (let i = 0; i < u8.length; i++) {
+        pkts.push(this._tcp('10.10.30.9', '10.10.40.9', m2, m1, 41000 + i, 443, 9000 + i * 10, 0, 0x02, 'SYN-PROBE-' + i, 0x1300 | u8[i]));
+      }
+    } else if (mode === 'ip-ttl') {
+      label = 'IPv4 TTL ASCII Covert Channel';
+      filter = 'ip.src == 10.10.30.17 && udp.dstport == 33434';
+      steps = ['1. Filter by "ip.src == 10.10.30.17 && udp.dstport == 33434".', '2. Add or inspect the IPv4 Time-to-Live (ip.ttl) column for each packet.', '3. Convert the sequence of TTL decimal values directly from ASCII to text.'];
+      for (let i = 0; i < u8.length; i++) {
+        pkts.push(this._udp('10.10.30.17', '10.10.40.17', m2, m1, 45000 + i, 33434, 'TRACE-HOP-' + i, 0x520 + i, u8[i]));
+      }
+    } else if (mode === 'tcp-urg') {
+      label = 'TCP Urgent Pointer Stego';
+      filter = 'tcp.dstport == 9001 && tcp.flags.urg == 1';
+      steps = ['1. Filter by "tcp.dstport == 9001 && tcp.flags.urg == 1".', '2. Inspect the TCP Urgent Pointer (tcp.urgent_pointer) in each packet.', '3. Convert the Urgent Pointer numbers from ASCII codes into characters.'];
+      for (let i = 0; i < u8.length; i++) {
+        pkts.push(this._tcp('10.10.30.25', '10.10.40.25', m1, m2, 59000 + i, 9001, 2000 + i, 1, 0x30, 'URG-' + i, 0x550 + i, u8[i]));
+      }
+    } else if (mode === 'xor-otp') {
+      label = 'UDP XOR Key-Stream Pair';
+      filter = 'udp.port == 9999';
+      steps = ['1. Filter by "udp.port == 9999" to find the 2 keystream packets.', '2. Copy the hex string after OTP_KEY= and the hex string after OTP_CIPHER=.', '3. XOR the two hex values together (e.g. in CyberChef) to decode the flag.'];
+      let key = [], enc = [];
+      for (let i = 0; i < u8.length; i++) {
+        let k = (0x5a + ((i * 19) & 0x3f)) & 0xff;
+        key.push(k.toString(16).padStart(2, '0'));
+        enc.push((u8[i] ^ k).toString(16).padStart(2, '0'));
+      }
+      pkts.push(this._udp('10.10.30.40', '10.10.40.40', m1, m3, 49999, 9999, 'OTP_KEY=' + key.join(''), 0x580));
+      pkts.push(this._udp('10.10.30.40', '10.10.40.40', m1, m3, 49999, 9999, 'OTP_CIPHER=' + enc.join(''), 0x581));
+    } else {
+      label = 'UDP Source Port Knocking';
+      filter = 'udp.dstport == 1337';
+      steps = ['1. Filter by "udp.dstport == 1337".', '2. Look at the UDP Source Port (udp.srcport) on each knock packet.', '3. Subtract 10000 from each source port and convert the ASCII codes to text.'];
+      for (let i = 0; i < u8.length; i++) {
+        pkts.push(this._udp('10.10.30.77', '10.10.40.77', m2, m3, 10000 + u8[i], 1337, 'KNOCK-SEQ-' + (i + 1), 0x5a0 + i));
+      }
+    }
+    return { pkts, steps, filter, label };
+  },
+
+  _pcap(items) {
+    let n = 24 + items.reduce((a, x) => a + 16 + x.pkt.length, 0);
+    let ba = new ArrayBuffer(n), v = new DataView(ba), o = 24;
+    let sec = Math.floor(Date.now() / 1000) - 600, usec = 120000;
+    v.setUint32(0, 0xa1b2c3d4, true);
+    v.setUint16(4, 2, true);
+    v.setUint16(6, 4, true);
+    v.setUint32(16, 65535, true);
+    v.setUint32(20, 1, true);
+    for (let i = 0; i < items.length; i++) {
+      let p = items[i].pkt, l = p.length;
+      usec += 15000 + Math.floor(Math.random() * 45000);
+      if (usec >= 1000000) { sec += 1; usec -= 1000000; }
+      v.setUint32(o, sec, true);
+      v.setUint32(o + 4, usec, true);
+      v.setUint32(o + 8, l, true);
+      v.setUint32(o + 12, l, true);
+      new Uint8Array(ba, o + 16, l).set(p);
+      o += 16 + l;
+    }
+    return ba;
+  },
+
+  _decode_ascii(bytes) {
+    let out = '';
+    for (let i = 0; i < bytes.length; i++) {
+      let b = bytes[i];
+      out += (b >= 32 && b < 127) ? String.fromCharCode(b) : ' ';
+    }
+    return out.replace(/\s+/g, ' ').trim();
+  },
+
+  _summary(pkt) {
+    if (!pkt || pkt.length < 34) return { src: '0.0.0.0', dst: '0.0.0.0', protocol: 'RAW', info: 'Frame' };
+    let ip = pkt.subarray(14), ihl = (ip[0] & 0x0f) * 4, proto = ip[9], ttl = ip[8], ip_id = (ip[4] << 8) | ip[5];
+    let src = [ip[12], ip[13], ip[14], ip[15]].join('.'), dst = [ip[16], ip[17], ip[18], ip[19]].join('.');
+    let l4 = ip.subarray(ihl);
+    if (proto === 6 && l4.length >= 20) {
+      let sp = (l4[0] << 8) | l4[1], dp = (l4[2] << 8) | l4[3], fl = l4[13], urg = (l4[18] << 8) | l4[19];
+      let txt = this._decode_ascii(l4.subarray(20, 96));
+      let p = (sp === 80 || dp === 80) ? 'HTTP' : (sp === 21 || dp === 21 || sp === 20 || dp === 20) ? 'FTP' : (sp === 6667 || dp === 6667) ? 'IRC' : (sp === 25 || dp === 25) ? 'SMTP' : 'TCP';
+      let extra = (fl & 0x20) ? ' [URG=' + urg + '] ' : (fl === 0x02) ? ' [SYN id=0x' + ip_id.toString(16) + '] ' : ' ';
+      return { src, dst, protocol: p, info: sp + '->' + dp + extra + txt };
+    }
+    if (proto === 17 && l4.length >= 8) {
+      let sp = (l4[0] << 8) | l4[1], dp = (l4[2] << 8) | l4[3], data = l4.subarray(8);
+      if (sp === 53 || dp === 53) {
+        let qn = '', off = 12;
+        while (off < data.length && data[off] > 0 && data[off] < 64) {
+          let ln = data[off];
+          qn += (qn ? '.' : '') + this._decode_ascii(data.subarray(off + 1, off + 1 + ln));
+          off += 1 + ln;
+        }
+        return { src, dst, protocol: 'DNS', info: (dp === 53 ? 'Query ' : 'Resp ') + qn + ' ' + this._decode_ascii(data.subarray(off + 5, off + 60)) };
+      }
+      let p = (sp === 5060 || dp === 5060) ? 'SIP' : 'UDP';
+      return { src, dst, protocol: p, info: sp + '->' + dp + ' [ttl=' + ttl + '] ' + this._decode_ascii(data.subarray(0, 64)) };
+    }
+    if (proto === 1 && l4.length >= 8) {
+      let seq = (l4[6] << 8) | l4[7];
+      return { src, dst, protocol: 'ICMP', info: 'Echo seq=' + seq + ' ' + this._decode_ascii(l4.subarray(8, 64)) };
+    }
+    return { src, dst, protocol: 'IPv4', info: 'proto=' + proto };
+  },
+
+  async gen(t) {
+    let raw = (this.use_image && this.file_text) ? this.file_text : this._str(t || '');
+    let flag = raw.trim() || 'FLAG{packet_sniffing_forensics}';
+    let d = this.difficulty_select ? this.difficulty_select.value : 'easy';
+    let sel = this.hint_select ? this.hint_select.value : 'random';
+    let pool = (this._variants()[d] || this._variants().easy).slice(1).map(x => x[0]);
+    let mode = (sel === 'random' || !pool.includes(sel)) ? pool[Math.floor(Math.random() * pool.length)] : sel;
+    let n = Math.max(12, Math.min(512, Number(this.noise_input ? this.noise_input.value : 48) || 48));
+    let corr = Number(this.corruption_sld ? this.corruption_sld.value : 15);
+    let noise = await this._noise();
+    let m1 = this._m8('00:16:3e:44:55:66'), m2 = this._m8('00:50:56:88:99:aa'), m3 = this._m8('00:1b:21:cc:dd:ee');
+    let built = this._build_puzzle(mode, flag, m1, m2, m3);
+    this.viewer_steps = built.steps;
+    this.active_variant = built.label;
+    this.active_filter = built.filter;
+    let decoys = [], domains = ['node.cascadia.net', 'grid.cascadia.net', 'relay.webway.local', 'auth.spire.internal'];
+    for (let i = 0; i < n; i++) {
+      let msg = this._corrupt(noise[i % noise.length], corr), kind = i % 4, p;
+      let sip = '10.10.12.' + ((i % 40) + 2), dip = '10.10.18.' + ((i % 30) + 5);
+      if (kind === 0) p = this._dns_q(0x1000 + i, 'srv-' + (i % 19) + '.' + domains[i % domains.length], 1, sip, '10.10.20.250', m1, m3, 0x800 + i);
+      else if (kind === 1) p = this._tcp(sip, dip, m1, m2, 40000 + i, 80, 5000 + i * 64, 1, 0x18, 'POST /telemetry HTTP/1.1\r\nHost: ' + domains[i % domains.length] + '\r\n\r\nmsg=' + msg, 0x900 + i);
+      else if (kind === 2) p = this._udp(sip, dip, m2, m3, 5514, 514, '<134>CascadiaSyslog: ' + msg, 0xa00 + i);
+      else p = this._icmp(8, 0, 0x0400, i + 1, sip, '10.10.20.250', m1, m3, 'hb=' + msg.slice(0, 36), 0xb00 + i);
+      decoys.push({ pkt: p, flag: false });
+    }
+    let items = [], f_idx = 0, start = Math.min(4, Math.floor(decoys.length / 4));
+    let step = Math.max(1, Math.floor((decoys.length - start) / (built.pkts.length + 2)));
+    for (let i = 0; i < decoys.length; i++) {
+      if (i >= start && f_idx < built.pkts.length && (i - start) % step === 0) {
+        items.push({ pkt: built.pkts[f_idx++], flag: true });
+      }
+      items.push(decoys[i]);
+    }
+    while (f_idx < built.pkts.length) items.push({ pkt: built.pkts[f_idx++], flag: true });
+    let rows = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].flag || rows.length < 14 - (built.pkts.length - rows.filter(r => r.flag).length)) {
+        if (rows.length >= 14 && !items[i].flag) continue;
+        if (rows.length >= 14 && items[i].flag) {
+          let drop = rows.findIndex(r => !r.flag);
+          if (drop >= 0) rows.splice(drop, 1);
+          else rows.shift();
+        }
+        let s = this._summary(items[i].pkt);
+        rows.push({
+          no: i + 1,
+          time: (i * 0.037).toFixed(3),
+          src: s.src,
+          dst: s.dst,
+          protocol: s.protocol,
+          info: s.info,
+          flag: items[i].flag,
+          flag_value: flag
+        });
+      }
+    }
+    this.viewer_rows = rows;
+    this.buffer = this._pcap(items);
+    this.b = new Blob([this.buffer], { type: 'application/vnd.tcpdump.pcap' });
+    return this.buffer;
+  },
+
+  save() {
+    if (!this.buffer) return;
+    let u = URL.createObjectURL(this.b || new Blob([this.buffer], { type: 'application/vnd.tcpdump.pcap' }));
+    let a = document.createElement('a');
+    a.href = u;
+    a.download = 'challenge.pcap';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(u), 0);
+  },
+
+  _viewer_hit(x, y) {
+    if (!this.viewer_rows || !this.viewer_rows.length || !this.canvas_el) return -1;
+    let h = this.canvas_el.height, max_r = Math.min(this.viewer_rows.length, 14);
+    let rh = Math.max(14, Math.min(20, (h - 54) / Math.max(max_r, 1)));
+    let top = 28, hit = Math.floor((y - top - 16) / rh);
+    if (y < top + 16 || hit < 0 || hit >= max_r || x < 6 || x > this.canvas_el.width - 6) return -1;
+    return this.viewer_rows[hit].flag ? hit : -1;
+  },
+
+  draw() {
+    if (!this.ctx || !this.canvas_el) return;
+    if (this.canvas_el.width !== 900 || this.canvas_el.height !== 360) {
+      this.canvas_el.width = 900;
+      this.canvas_el.height = 360;
+    }
+    let w = this.canvas_el.width, h = this.canvas_el.height, rows = (this.viewer_rows || []).slice(0, 14);
+    let hover = (this.viewer_hover >= 0 && rows[this.viewer_hover]) ? rows[this.viewer_hover] : null;
+    let max_r = Math.max(rows.length, 1), rh = Math.max(14, Math.min(20, (h - 54) / max_r)), top = 28;
+    this.ctx.textAlign = 'left';
+    this.ctx.textBaseline = 'alphabetic';
+    this.ctx.lineWidth = 1;
+    this.ctx.fillStyle = '#071114';
+    this.ctx.fillRect(0, 0, w, h);
+    this.ctx.fillStyle = '#0f242c';
+    this.ctx.fillRect(6, 6, w - 12, 20);
+    this.ctx.fillStyle = '#7be3f6';
+    this.ctx.font = 'bold 11px monospace';
+    this.ctx.fillText('Active Puzzle: ' + (this.active_variant || 'PCAP') + '   |   Wireshark Filter: ' + (this.active_filter || 'any') + '   |   (Hover gold rows for solution)', 12, 20);
+    this.ctx.fillStyle = '#d9f5ff';
+    this.ctx.font = '11px monospace';
+    let cols = [38, 56, 108, 108, 54], labels = ['No.', 'Time', 'Source', 'Destination', 'Proto', 'Info'], cx = 10;
+    for (let i = 0; i < labels.length; i++) {
+      this.ctx.fillText(labels[i], cx, top + 12);
+      cx += cols[i] || 0;
+    }
+    for (let i = 0; i < rows.length; i++) {
+      let r = rows[i], y = top + 28 + i * rh, sel = !!r.flag;
+      this.ctx.fillStyle = sel ? 'rgba(255, 204, 0, 0.20)' : (i % 2 === 0 ? 'rgba(18, 34, 50, 0.9)' : 'rgba(10, 24, 30, 0.9)');
+      this.ctx.fillRect(6, y - 12, w - 12, rh - 2);
+      this.ctx.strokeStyle = (hover === r) ? '#ffdb4d' : (sel ? '#f4c542' : '#213d46');
+      this.ctx.strokeRect(6, y - 12, w - 12, rh - 2);
+      this.ctx.fillStyle = sel ? '#ffde59' : '#dfeef7';
+      let rx = 10, vals = [String(r.no), r.time, r.src, r.dst, r.protocol];
+      for (let j = 0; j < vals.length; j++) {
+        this.ctx.fillText(vals[j], rx, y);
+        rx += cols[j];
+      }
+      let info = r.info || '', max_w = w - rx - 14;
+      while (info.length > 0 && this.ctx.measureText(info).width > max_w) info = info.slice(0, -1);
+      this.ctx.fillText(info, rx, y);
+    }
+    if (hover && hover.flag) {
+      let bw = 540, bh = 115, bx = w - bw - 14, by = Math.max(34, Math.min(h - bh - 10, top + 20 + this.viewer_hover * rh));
+      this.ctx.fillStyle = 'rgba(6, 18, 24, 0.96)';
+      this.ctx.fillRect(bx, by, bw, bh);
+      this.ctx.strokeStyle = '#ffe070';
+      this.ctx.lineWidth = 2;
+      this.ctx.strokeRect(bx, by, bw, bh);
+      this.ctx.fillStyle = '#fff6b2';
+      this.ctx.font = 'bold 12px monospace';
+      this.ctx.fillText('Flag: ' + hover.flag_value, bx + 12, by + 20);
+      this.ctx.fillStyle = '#7be3f6';
+      this.ctx.font = '11px monospace';
+      this.ctx.fillText('Variant: ' + this.active_variant + '  |  Filter: ' + this.active_filter, bx + 12, by + 38);
+      this.ctx.fillStyle = '#dfeef7';
+      for (let i = 0; i < this.viewer_steps.length; i++) {
+        this.ctx.fillText(this.viewer_steps[i], bx + 12, by + 58 + i * 16);
+      }
+    }
+  }
 };
