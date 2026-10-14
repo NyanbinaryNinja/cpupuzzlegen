@@ -2,6 +2,7 @@ const pcap = {
   f: null,
   r: null,
   u: null,
+  m: null,
   use_image: false,
   input_fieldset: null,
   canvas_el: null,
@@ -15,13 +16,29 @@ const pcap = {
   active_flag: '',
 
   init(canvas_el, ctx) {
-    let c = document.querySelector('#input_box').parentElement, p = document.querySelector('.options-window .window-body'), r = document.createElement('fieldset'), u = document.createElement('fieldset'), o = document.createElement('div'), d = document.createElement('select'), h = document.createElement('select'), i = document.createElement('input'), l = document.createElement('button'), n = document.createElement('span'), q = document.createElement('input'), y = document.createElement('input'), z = document.createElement('textarea'), s = document.createElement('input'), a = document.createElement('label'), v = document.createElement('label'), x = document.createElement('label'), e = document.createElement('label'), w = document.createElement('label'), g = document.createElement('label');
+    let c = document.querySelector('#input_box').parentElement, p = document.querySelector('.options-window .window-body'), r = document.createElement('fieldset'), u = document.createElement('fieldset'), m = document.createElement('fieldset'), o = document.createElement('div'), d = document.createElement('select'), h = document.createElement('select'), i = document.createElement('input'), l = document.createElement('button'), n = document.createElement('span'), q = document.createElement('input'), y = document.createElement('input'), z = document.createElement('textarea'), s = document.createElement('input'), a = document.createElement('label'), v = document.createElement('label'), x = document.createElement('label'), e = document.createElement('label'), w = document.createElement('label'), g = document.createElement('label'), ml1 = document.createElement('label'), mi1 = document.createElement('input'), ml2 = document.createElement('label'), mi2 = document.createElement('input');
     this.canvas_el = canvas_el;
     this.ctx = ctx;
     this.input_fieldset = c;
     this.r = r;
     this.u = u;
+    this.m = m;
     this.f = i;
+    this.meta_l1 = ml1;
+    this.meta_i1 = mi1;
+    this.meta_l2 = ml2;
+    this.meta_i2 = mi2;
+
+    m.style.cssText = 'display:none;align-items:center;gap:6px;flex-wrap:wrap;';
+    m.className = 'control-fieldset';
+    mi1.type = 'text';
+    mi1.style.cssText = 'flex:1;min-width:90px;';
+    mi2.type = 'text';
+    mi2.style.cssText = 'flex:1;min-width:90px;';
+    mi1.oninput = () => { if (window.generate_grid) window.generate_grid(); };
+    mi2.oninput = () => { if (window.generate_grid) window.generate_grid(); };
+    m.append(ml1, mi1, ml2, mi2);
+
     u.style.cssText = 'display:none;align-items:center;gap:8px;flex-wrap:wrap;';
     u.className = 'mb-5';
     i.type = 'file';
@@ -45,10 +62,12 @@ const pcap = {
     };
     u.append(l, n);
     c.parentElement.insertBefore(u, c.nextSibling);
+    c.parentElement.insertBefore(m, u);
+
     r.className = 'mb-5 w-100';
     r.style.cssText = 'display:none;width:100%;margin-top:8px;';
     d.className = 'mb-5 w-100';
-    d.innerHTML = '<option value="easy">Easy (Plaintext)</option><option value="intermediate">Intermediate (Encoded / Split)</option><option value="hard">Hard (Header Stego / Covert)</option>';
+    d.innerHTML = '<option value="easy">Easy (Single Packet Lookup)</option><option value="intermediate">Intermediate (Multi-Packet / Stream)</option><option value="hard">Hard (Header Stego / Covert)</option>';
     d.onchange = () => {
       this.difficulty = d.value;
       this._set_hint_options();
@@ -59,7 +78,10 @@ const pcap = {
     v.textContent = 'Look for:';
     h.className = 'mb-5 w-100';
     this.hint_select = h;
-    h.onchange = () => { if (window.generate_grid) window.generate_grid(); };
+    h.onchange = () => {
+      this._sync_meta_fields(h.value);
+      if (window.generate_grid) window.generate_grid();
+    };
     x.textContent = 'Packet count / file length:';
     y.type = 'number';
     y.min = '12';
@@ -104,7 +126,7 @@ const pcap = {
     return {
       easy: [
         ['random', 'Random (Any Easy Variant)'],
-        ['http-auth', 'HTTP 200 OK Header'],
+        ['http-creds', 'HTTP Login Credentials'],
         ['ftp-transfer', 'FTP File Transfer'],
         ['irc-chat', 'IRC Channel Chatter'],
         ['smtp-mail', 'SMTP Email Body'],
@@ -112,21 +134,53 @@ const pcap = {
       ],
       intermediate: [
         ['random', 'Random (Any Intermediate Variant)'],
-        ['http-b64', 'HTTP Base64 Token'],
-        ['dns-exfil', 'DNS Subdomain Hex Chunks'],
-        ['icmp-carve', 'ICMP Ping Sequence'],
-        ['sip-digest', 'SIP Auth Nonce / SDP'],
-        ['tcp-reassemble', 'TCP Segmented Hex Stream']
+        ['http-brute', 'HTTP Brute-Force (Find 200 OK)'],
+        ['tcp-split', 'TCP Split Stream Segments'],
+        ['icmp-order', 'ICMP Out-of-Order Ping Chunks'],
+        ['dns-sub', 'DNS Subdomain Chunks'],
+        ['sip-call', 'SIP VoIP Call Invite']
       ],
       hard: [
         ['random', 'Random (Any Hard Variant)'],
         ['ip-id', 'IPv4 Identification Stego'],
         ['ip-ttl', 'IPv4 TTL Covert Channel'],
         ['tcp-urg', 'TCP Urgent Pointer Stego'],
-        ['xor-otp', 'UDP XOR Key-Stream Pair'],
-        ['port-knock', 'UDP Source Port Knocking']
+        ['port-knock', 'UDP Source Port Knocking'],
+        ['evil-bit', 'IPv4 Evil-Bit Flag Chunks']
       ]
     };
+  },
+
+  _meta_cfg(mode) {
+    let map = {
+      'http-creds': ['User:', 'admin', 'Host:', 'auth.cascadia.net'],
+      'ftp-transfer': ['FTP User:', 'netrunner', 'File:', 'clearance.txt'],
+      'irc-chat': ['Nick:', 'kestrel', 'Channel:', '#weavers-ops'],
+      'smtp-mail': ['From:', 'director@cascadia.net', 'To:', 'cell-09@cascadia.net'],
+      'dns-txt': ['Domain:', '_token.cascadia.net', 'Resolver:', '10.10.20.250'],
+      'http-brute': ['Valid User:', 'operative_7', 'Host:', 'portal.cascadia.net'],
+      'tcp-split': ['Service Port:', '8443', 'Server IP:', '10.10.20.88'],
+      'icmp-order': ['Sender IP:', '10.10.20.77', 'Ping Tag:', 'SYNC'],
+      'dns-sub': ['Base Domain:', 'exfil.cascadia.net', 'Client IP:', '10.10.20.7'],
+      'sip-call': ['Caller:', 'operator', 'SIP Domain:', 'voip.cascadia.net'],
+      'ip-id': ['Sender IP:', '10.10.30.9', 'Target Port:', '443'],
+      'ip-ttl': ['Sender IP:', '10.10.30.17', 'UDP Port:', '33434'],
+      'tcp-urg': ['Sender IP:', '10.10.30.25', 'TCP Port:', '9001'],
+      'port-knock': ['Base Port:', '10000', 'Knock Port:', '1337'],
+      'evil-bit': ['Sender IP:', '10.10.30.66', 'UDP Port:', '6666']
+    };
+    return map[mode] || ['User/IP:', '', 'Target/Host:', ''];
+  },
+
+  _sync_meta_fields(mode) {
+    if (!this.meta_l1) return;
+    let cfg = this._meta_cfg(mode);
+    this.meta_l1.textContent = cfg[0];
+    this.meta_i1.placeholder = cfg[1] || 'default';
+    this.meta_i1.value = cfg[1];
+    this.meta_l2.textContent = cfg[2];
+    this.meta_i2.placeholder = cfg[3] || 'default';
+    this.meta_i2.value = cfg[3];
   },
 
   _set_hint_options() {
@@ -139,15 +193,18 @@ const pcap = {
       opt.textContent = list[i][1];
       this.hint_select.appendChild(opt);
     }
+    this._sync_meta_fields(this.hint_select.value);
   },
 
   show() {
     if (this.r) this.r.style.display = 'block';
     if (this.u) this.u.style.display = 'flex';
+    if (this.m) this.m.style.display = 'flex';
   },
   hide() {
     if (this.r) this.r.style.display = 'none';
     if (this.u) this.u.style.display = 'none';
+    if (this.m) this.m.style.display = 'none';
   },
   set_image_mode(enabled) {
     this.use_image = enabled;
@@ -156,8 +213,6 @@ const pcap = {
   generate(t) { return this.gen(t); },
   _str(v) { return String(v || ''); },
   _u8(s) { return new TextEncoder().encode(this._str(s)); },
-  _hex(v) { return Array.from(this._u8(v)).map(b => b.toString(16).padStart(2, '0')).join(''); },
-  _b64(v) { return btoa(unescape(encodeURIComponent(this._str(v)))); },
   _ip32(v) {
     let a = this._str(v).split('.').map(x => parseInt(x, 10) || 0);
     return ((a[0] << 24) | (a[1] << 16) | (a[2] << 8) | a[3]) >>> 0;
@@ -238,12 +293,12 @@ const pcap = {
     return b;
   },
 
-  _ipv4(sip, dip, proto, payload, id = 0, ttl = 64) {
+  _ipv4(sip, dip, proto, payload, id = 0, ttl = 64, flags = 0x4000) {
     let b = new Uint8Array(20 + payload.length), v = new DataView(b.buffer);
     v.setUint8(0, 0x45);
     v.setUint16(2, 20 + payload.length, false);
     v.setUint16(4, id & 0xffff, false);
-    v.setUint16(6, 0x4000, false);
+    v.setUint16(6, flags & 0xffff, false);
     v.setUint8(8, ttl & 0xff);
     v.setUint8(9, proto);
     v.setUint32(12, this._ip32(sip), false);
@@ -278,14 +333,14 @@ const pcap = {
     return this._eth(smac, dmac, 0x0800, this._ipv4(sip, dip, 6, h, id, ttl));
   },
 
-  _udp(sip, dip, smac, dmac, sport, dport, payload, id = 0, ttl = 64) {
+  _udp(sip, dip, smac, dmac, sport, dport, payload, id = 0, ttl = 64, ip_flags = 0x4000) {
     let p = payload instanceof Uint8Array ? payload : this._u8(payload), h = new Uint8Array(8 + p.length), v = new DataView(h.buffer);
     v.setUint16(0, sport, false);
     v.setUint16(2, dport, false);
     v.setUint16(4, 8 + p.length, false);
     h.set(p, 8);
     v.setUint16(6, this._l4_csum(sip, dip, 17, h), false);
-    return this._eth(smac, dmac, 0x0800, this._ipv4(sip, dip, 17, h, id, ttl));
+    return this._eth(smac, dmac, 0x0800, this._ipv4(sip, dip, 17, h, id, ttl, ip_flags));
   },
 
   _icmp(type, code, id, seq, sip, dip, smac, dmac, payload, ip_id = 0, ttl = 64) {
@@ -331,87 +386,168 @@ const pcap = {
     return this._udp(dip, sip, dmac, smac, 53, 53100 + (id & 0xff), b, ip_id);
   },
 
-  _build_puzzle(mode, flag, m1, m2, m3) {
-    let pkts = [], steps = [], label = mode, b64 = this._b64(flag), hex = this._hex(flag), u8 = this._u8(flag);
-    if (mode === 'http-auth') {
-      label = 'HTTP 200 OK Header';
-      steps = ['1. Filter Wireshark by: http', '2. Find the HTTP/1.1 200 OK response from 203.0.113.10.', '3. Read the X-Flag header or JSON body for the flag.'];
-      pkts.push(this._tcp('203.0.113.10', '10.10.20.14', m2, m1, 80, 51420, 1, 100, 0x18, 'HTTP/1.1 200 OK\r\nX-Flag: ' + flag + '\r\n\r\n{"flag":"' + flag + '"}', 0x302));
+  _build_puzzle(mode, flag, m1, m2, m3, v1, v2) {
+    let pkts = [], decoys = [], steps = [], label = mode, u8 = this._u8(flag), d = this._meta_cfg(mode);
+    let p1 = v1 || d[1], p2 = v2 || d[3];
+
+    if (mode === 'http-creds') {
+      label = 'HTTP Login Credentials';
+      steps = [
+        '1. Filter Wireshark by: http.request.method == "POST"',
+        '2. Inspect the POST /login form payload from user "' + p1 + '" to ' + p2 + ' to read pass=' + flag
+      ];
+      pkts.push(this._tcp('10.10.20.14', '203.0.113.10', m1, m2, 51420, 80, 100, 1, 0x18, 'POST /login HTTP/1.1\r\nHost: ' + p2 + '\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\nuser=' + p1 + '&pass=' + flag, 0x301));
     } else if (mode === 'ftp-transfer') {
       label = 'FTP File Transfer';
-      steps = ['1. Filter Wireshark by: ftp-data || tcp.port == 20', '2. Locate the file transfer from 10.10.20.66.', '3. Read the plaintext flag inside the packet payload.'];
-      pkts.push(this._tcp('10.10.20.66', '10.10.20.22', m2, m1, 20, 49201, 500, 1, 0x18, 'RETR clearance_key.txt -> ' + flag + '\r\n', 0x314));
+      steps = [
+        '1. Filter Wireshark by: ftp || ftp-data',
+        '2. Follow login for "' + p1 + '" and inspect the port 20 transfer of "' + p2 + '" for the flag.'
+      ];
+      pkts.push(this._tcp('10.10.20.22', '10.10.20.66', m1, m2, 49200, 21, 1, 1, 0x18, 'USER ' + p1 + '\r\nRETR ' + p2 + '\r\n', 0x311));
+      pkts.push(this._tcp('10.10.20.66', '10.10.20.22', m2, m1, 20, 49201, 500, 1, 0x18, 'FILE ' + p2 + ': ' + flag + '\r\n', 0x314));
     } else if (mode === 'irc-chat') {
       label = 'IRC Channel Chatter';
-      steps = ['1. Filter Wireshark by: irc || tcp.port == 6667', '2. Inspect the PRIVMSG sent to #weavers-ops.', '3. Read the plaintext flag at the end of the message.'];
-      pkts.push(this._tcp('10.10.20.31', '10.10.20.99', m1, m3, 52667, 6667, 100, 80, 0x18, 'PRIVMSG #weavers-ops :Active key is ' + flag + '\r\n', 0x322));
+      steps = [
+        '1. Filter Wireshark by: irc || tcp.port == 6667',
+        '2. Find the PRIVMSG from "' + p1 + '" in channel ' + p2 + ' containing the flag.'
+      ];
+      pkts.push(this._tcp('10.10.20.31', '10.10.20.99', m1, m3, 52667, 6667, 100, 80, 0x18, ':' + p1 + '!op@cascadia PRIVMSG ' + p2 + ' :Key is ' + flag + '\r\n', 0x322));
     } else if (mode === 'smtp-mail') {
       label = 'SMTP Email Body';
-      steps = ['1. Filter Wireshark by: smtp || tcp.port == 25', '2. Select the email DATA packet from 10.10.20.44.', '3. Read the email body text for the flag.'];
-      pkts.push(this._tcp('10.10.20.44', '10.10.20.25', m1, m2, 50025, 25, 74, 30, 0x18, 'Subject: Override\r\n\r\nAuth token: ' + flag + '\r\n.\r\n', 0x332));
+      steps = [
+        '1. Filter Wireshark by: smtp || tcp.port == 25',
+        '2. Locate the email sent from <' + p1 + '> to <' + p2 + '>.',
+        '3. Read the message body text to extract the flag.'
+      ];
+      pkts.push(this._tcp('10.10.20.44', '10.10.20.25', m1, m2, 50025, 25, 74, 30, 0x18, 'From: ' + p1 + '\r\nTo: ' + p2 + '\r\nSubject: Dispatch\r\n\r\nClearance: ' + flag + '\r\n.\r\n', 0x332));
     } else if (mode === 'dns-txt') {
       label = 'DNS TXT Response';
-      steps = ['1. Filter Wireshark by: dns.qry.type == 16', '2. Find the DNS response for _token.webway.cascadia.net.', '3. Read the TXT record string in the Answers section.'];
-      pkts.push(this._dns_r(0x4a21, '_token.webway.cascadia.net', flag, '10.10.20.18', '10.10.20.250', m1, m3, 0x341));
-    } else if (mode === 'http-b64') {
-      label = 'HTTP Base64 Token';
-      steps = ['1. Filter Wireshark by: http', '2. Copy the Bearer string from the GET /vault/telemetry packet.', '3. Base64-decode "' + b64 + '" to get the flag.'];
-      pkts.push(this._tcp('10.10.20.19', '198.51.100.42', m1, m2, 54080, 80, 500, 1, 0x18, 'GET /vault/telemetry HTTP/1.1\r\nAuthorization: Bearer ' + b64 + '\r\n\r\n', 0x401));
-    } else if (mode === 'dns-exfil') {
-      label = 'DNS Subdomain Hex Chunks';
-      steps = ['1. Filter by: dns.qry.name contains "exfil.cascadia.net"', '2. Combine the hex subdomains (p0, p1, p2...) in order.', '3. Hex-decode "' + hex + '" to get the flag.'];
-      for (let i = 0; i < hex.length; i += 16) {
-        let idx = Math.floor(i / 16);
-        pkts.push(this._dns_q(0x7100 + idx, 'p' + idx + '.' + hex.slice(i, i + 16) + '.exfil.cascadia.net', 16, '10.10.20.7', '10.10.20.250', m1, m3, 0x410 + idx));
+      steps = [
+        '1. Filter Wireshark by: dns.qry.type == 16',
+        '2. Read the TXT answer returned by ' + p2 + ' for "' + p1 + '".'
+      ];
+      let dip = /^\d+\.\d+\.\d+\.\d+$/.test(p2) ? p2 : '10.10.20.250';
+      pkts.push(this._dns_r(0x4a21, p1, flag, '10.10.20.18', dip, m1, m3, 0x341));
+    } else if (mode === 'http-brute') {
+      label = 'HTTP Brute-Force (Find 200 OK)';
+      steps = [
+        '1. Filter Wireshark by: http',
+        '2. Ignore the failed 401 Unauthorized login attempts with decoy tokens.',
+        '3. Locate the successful HTTP/1.1 200 OK login for user "' + p1 + '" on ' + p2 + '.',
+        '4. Read the X-Session-Flag header in the 200 OK packet.'
+      ];
+      for (let i = 0; i < 3; i++) {
+        decoys.push(this._tcp('203.0.113.50', '10.10.20.19', m2, m1, 80, 54000 + i, 1, 50, 0x18, 'HTTP/1.1 401 Unauthorized\r\nHost: ' + p2 + '\r\nX-Attempt: guest_' + i + '\r\n\r\nDenied: DECOY{invalid_attempt_' + i + '}', 0x400 + i));
       }
-    } else if (mode === 'icmp-carve') {
-      label = 'ICMP Ping Sequence';
-      steps = ['1. Filter by: icmp && ip.src == 10.10.20.77', '2. Order the Echo Requests by Sequence Number (100, 101...).', '3. Join the text chunks after "SYNC|" to form the flag.'];
-      for (let i = 0; i < flag.length; i += 6) {
-        let idx = Math.floor(i / 6);
-        pkts.push(this._icmp(8, 0, 0x2200, 100 + idx, '10.10.20.77', '10.10.20.250', m1, m3, 'SYNC|' + flag.slice(i, i + 6), 0x430 + idx));
-      }
-    } else if (mode === 'sip-digest') {
-      label = 'SIP Auth Nonce / SDP';
-      steps = ['1. Filter Wireshark by: sip || udp.port == 5060', '2. Inspect the INVITE Authorization header or SDP body.', '3. Hex-decode nonce="' + hex + '" (or Base64-decode response).'];
-      pkts.push(this._udp('10.10.20.12', '10.10.20.20', m1, m3, 5060, 5060, 'INVITE sip:op@cascadia.net SIP/2.0\r\nAuthorization: Digest nonce="' + hex + '", response="' + b64 + '"\r\n\r\n', 0x450));
-    } else if (mode === 'tcp-reassemble') {
-      label = 'TCP Segmented Hex Stream';
-      steps = ['1. Filter Wireshark by: tcp.port == 8443', '2. Follow TCP Stream and join the "frag" hex strings in order.', '3. Hex-decode "' + hex + '" into ASCII.'];
+      pkts.push(this._tcp('203.0.113.50', '10.10.20.19', m2, m1, 80, 54010, 1, 50, 0x18, 'HTTP/1.1 200 OK\r\nHost: ' + p2 + '\r\nX-User: ' + p1 + '\r\nX-Session-Flag: ' + flag + '\r\n\r\nLogin OK', 0x409));
+    } else if (mode === 'tcp-split') {
+      let port = parseInt(p1, 10) || 8443, dip = /^\d+\.\d+\.\d+\.\d+$/.test(p2) ? p2 : '10.10.20.88';
+      label = 'TCP Split Stream Segments';
+      steps = [
+        '1. Filter Wireshark by: tcp.port == ' + port,
+        '2. Right-click any matching packet and select Follow -> TCP Stream (or sort by Seq #).',
+        '3. Reassemble the plaintext chunks across the stream to read the full flag.'
+      ];
       let seq = 1000;
-      for (let i = 0; i < hex.length; i += 12) {
-        let idx = Math.floor(i / 12), frag = '{"part":' + idx + ',"frag":"' + hex.slice(i, i + 12) + '"}\n';
-        pkts.push(this._tcp('10.10.20.55', '10.10.20.88', m1, m2, 58443, 8443, seq, 1, 0x18, frag, 0x460 + idx));
-        seq += frag.length;
+      for (let i = 0; i < flag.length; i += 5) {
+        let idx = Math.floor(i / 5), chunk = 'SEG[' + idx + ']=' + flag.slice(i, i + 5) + '\n';
+        pkts.push(this._tcp('10.10.20.55', dip, m1, m2, 58443, port, seq, 1, 0x18, chunk, 0x460 + idx));
+        seq += chunk.length;
       }
+    } else if (mode === 'icmp-order') {
+      let sip = /^\d+\.\d+\.\d+\.\d+$/.test(p1) ? p1 : '10.10.20.77', tag = p2 || 'SYNC';
+      label = 'ICMP Out-of-Order Ping Chunks';
+      steps = [
+        '1. Filter Wireshark by: icmp && ip.src == ' + sip,
+        '2. Notice the Echo Request packets arrived out of order.',
+        '3. Sort the packets by ICMP Sequence Number (100, 101, 102...).',
+        '4. Concatenate the plaintext chunks after "' + tag + '|" in sequence order.'
+      ];
+      let chunks = [];
+      for (let i = 0; i < flag.length; i += 4) chunks.push({ seq: 100 + Math.floor(i / 4), txt: flag.slice(i, i + 4) });
+      let shuffled = chunks.slice().sort((a, b) => ((a.seq * 7) % 13) - ((b.seq * 7) % 13));
+      for (let i = 0; i < shuffled.length; i++) {
+        pkts.push(this._icmp(8, 0, 0x2200, shuffled[i].seq, sip, '10.10.20.250', m1, m3, tag + '|seq=' + shuffled[i].seq + '|' + shuffled[i].txt, 0x430 + i));
+      }
+    } else if (mode === 'dns-sub') {
+      let dom = p1 || 'exfil.cascadia.net', sip = /^\d+\.\d+\.\d+\.\d+$/.test(p2) ? p2 : '10.10.20.7';
+      label = 'DNS Subdomain Chunks';
+      steps = [
+        '1. Filter Wireshark by: dns.qry.name contains "' + dom + '"',
+        '2. Inspect the DNS queries sent from ' + sip + ' in order (part0, part1, part2...).',
+        '3. Join the subdomain labels between "partN." and ".' + dom + '" to read the flag.'
+      ];
+      for (let i = 0; i < flag.length; i += 6) {
+        let idx = Math.floor(i / 6), clean = flag.slice(i, i + 6);
+        pkts.push(this._dns_q(0x7100 + idx, 'part' + idx + '.' + clean + '.' + dom, 1, sip, '10.10.20.250', m1, m3, 0x410 + idx));
+      }
+    } else if (mode === 'sip-call') {
+      label = 'SIP VoIP Call Invite';
+      steps = [
+        '1. Filter Wireshark by: sip || udp.port == 5060',
+        '2. Find the INVITE request from caller "' + p1 + '" at ' + p2 + '.',
+        '3. Check the SIP Subject header and SDP session info (i=) for the flag.'
+      ];
+      let msg = 'INVITE sip:console@' + p2 + ' SIP/2.0\r\nFrom: "' + p1 + '" <sip:' + p1 + '@' + p2 + '>\r\nSubject: Auth-' + flag + '\r\nContent-Type: application/sdp\r\n\r\nv=0\r\ns=WebwayCall\r\ni=' + flag + '\r\n';
+      pkts.push(this._udp('10.10.20.12', '10.10.20.20', m1, m3, 5060, 5060, msg, 0x450));
     } else if (mode === 'ip-id') {
+      let sip = /^\d+\.\d+\.\d+\.\d+$/.test(p1) ? p1 : '10.10.30.9', dp = parseInt(p2, 10) || 443;
       label = 'IPv4 Identification Stego';
-      steps = ['1. Filter by: ip.src == 10.10.30.9 && tcp.dstport == 443', '2. Inspect the IPv4 Identification (ip.id) field of each SYN packet.', '3. Convert the low byte of each ip.id (0x1300 + char) from ASCII.'];
-      for (let i = 0; i < u8.length; i++) pkts.push(this._tcp('10.10.30.9', '10.10.40.9', m2, m1, 41000 + i, 443, 9000 + i, 0, 0x02, 'SYN-' + i, 0x1300 | u8[i]));
+      steps = [
+        '1. Filter Wireshark by: ip.src == ' + sip + ' && tcp.dstport == ' + dp,
+        '2. Expand the IPv4 header on each SYN packet and check the Identification (ip.id) field.',
+        '3. Each ip.id equals 0x1300 + the ASCII byte of a flag character.',
+        '4. Take the low hex byte of each ip.id in packet order and convert from ASCII.'
+      ];
+      for (let i = 0; i < u8.length; i++) pkts.push(this._tcp(sip, '10.10.40.9', m2, m1, 41000 + i, dp, 9000 + i, 0, 0x02, 'SYN-' + i, 0x1300 | u8[i]));
     } else if (mode === 'ip-ttl') {
+      let sip = /^\d+\.\d+\.\d+\.\d+$/.test(p1) ? p1 : '10.10.30.17', dp = parseInt(p2, 10) || 33434;
       label = 'IPv4 TTL Covert Channel';
-      steps = ['1. Filter by: ip.src == 10.10.30.17 && udp.dstport == 33434', '2. Check the IPv4 Time-to-Live (ip.ttl) value of each UDP packet.', '3. Convert the sequence of TTL numbers from decimal ASCII to text.'];
-      for (let i = 0; i < u8.length; i++) pkts.push(this._udp('10.10.30.17', '10.10.40.17', m2, m1, 45000 + i, 33434, 'HOP-' + i, 0x520 + i, u8[i]));
+      steps = [
+        '1. Filter Wireshark by: ip.src == ' + sip + ' && udp.dstport == ' + dp,
+        '2. Add IPv4 Time-to-Live (ip.ttl) as a column or inspect it in the IPv4 header.',
+        '3. Record the TTL decimal value of each probe packet in sequence.',
+        '4. Convert those decimal ASCII numbers into characters to spell the flag.'
+      ];
+      for (let i = 0; i < u8.length; i++) pkts.push(this._udp(sip, '10.10.40.17', m2, m1, 45000 + i, dp, 'HOP-' + i, 0x520 + i, u8[i]));
     } else if (mode === 'tcp-urg') {
+      let sip = /^\d+\.\d+\.\d+\.\d+$/.test(p1) ? p1 : '10.10.30.25', dp = parseInt(p2, 10) || 9001;
       label = 'TCP Urgent Pointer Stego';
-      steps = ['1. Filter by: tcp.dstport == 9001 && tcp.flags.urg == 1', '2. Inspect the TCP Urgent Pointer field in each packet.', '3. Convert the Urgent Pointer decimal values from ASCII to text.'];
-      for (let i = 0; i < u8.length; i++) pkts.push(this._tcp('10.10.30.25', '10.10.40.25', m1, m2, 59000 + i, 9001, 2000 + i, 1, 0x30, 'URG-' + i, 0x550 + i, u8[i]));
-    } else if (mode === 'xor-otp') {
-      label = 'UDP XOR Key-Stream Pair';
-      steps = ['1. Filter Wireshark by: udp.port == 9999', '2. Copy the hex string after OTP_KEY= and after OTP_CIPHER=.', '3. XOR the two hex strings together to reveal the flag.'];
-      let key = [], enc = [];
-      for (let i = 0; i < u8.length; i++) {
-        let k = (0x5a + ((i * 19) & 0x3f)) & 0xff;
-        key.push(k.toString(16).padStart(2, '0'));
-        enc.push((u8[i] ^ k).toString(16).padStart(2, '0'));
-      }
-      pkts.push(this._udp('10.10.30.40', '10.10.40.40', m1, m3, 49999, 9999, 'OTP_KEY=' + key.join('') + ' | OTP_CIPHER=' + enc.join(''), 0x580));
-    } else {
+      steps = [
+        '1. Filter Wireshark by: ip.src == ' + sip + ' && tcp.dstport == ' + dp + ' && tcp.flags.urg == 1',
+        '2. Expand the TCP header on each matching packet.',
+        '3. Read the Urgent Pointer (tcp.urgent_pointer) decimal value on each frame.',
+        '4. Convert the Urgent Pointer ASCII codes into text.'
+      ];
+      for (let i = 0; i < u8.length; i++) pkts.push(this._tcp(sip, '10.10.40.25', m1, m2, 59000 + i, dp, 2000 + i, 1, 0x30, 'URG-' + i, 0x550 + i, u8[i]));
+    } else if (mode === 'port-knock') {
+      let base_p = parseInt(p1, 10) || 10000, dp = parseInt(p2, 10) || 1337;
       label = 'UDP Source Port Knocking';
-      steps = ['1. Filter Wireshark by: udp.dstport == 1337', '2. Read the UDP Source Port (udp.srcport) on each packet.', '3. Subtract 10000 from each source port and convert ASCII to text.'];
-      for (let i = 0; i < u8.length; i++) pkts.push(this._udp('10.10.30.77', '10.10.40.77', m2, m3, 10000 + u8[i], 1337, 'KNOCK-' + (i + 1), 0x5a0 + i));
+      steps = [
+        '1. Filter Wireshark by: udp.dstport == ' + dp,
+        '2. Observe the UDP Source Port (udp.srcport) on each knock packet in order.',
+        '3. Subtract ' + base_p + ' from each packet\'s UDP source port.',
+        '4. Convert the resulting numbers from decimal ASCII into characters.',
+        '5. Combine the characters in order to get the flag.'
+      ];
+      for (let i = 0; i < u8.length; i++) pkts.push(this._udp('10.10.30.77', '10.10.40.77', m2, m3, base_p + u8[i], dp, 'KNOCK-' + (i + 1), 0x5a0 + i));
+    } else {
+      let sip = /^\d+\.\d+\.\d+\.\d+$/.test(p1) ? p1 : '10.10.30.66', dp = parseInt(p2, 10) || 6666;
+      label = 'IPv4 Evil-Bit Flag Chunks';
+      steps = [
+        '1. Filter traffic to port ' + dp + ': udp.dstport == ' + dp,
+        '2. Notice many packets carry fake decoy chunks in their payload.',
+        '3. Filter for packets with the IPv4 Reserved "Evil Bit" set: udp.dstport == ' + dp + ' && ip.flags.rb == 1',
+        '4. Read the payload chunks only from packets where Flags = 0x8000 (Reserved bit set).',
+        '5. Concatenate those valid chunks in order to assemble the flag.'
+      ];
+      for (let i = 0; i < flag.length; i += 4) {
+        let idx = Math.floor(i / 4);
+        decoys.push(this._udp(sip, '10.10.40.66', m1, m3, 46000 + idx, dp, 'CHUNK=' + this._corrupt(flag.slice(i, i + 4), 100), 0x600 + idx, 64, 0x4000));
+        pkts.push(this._udp(sip, '10.10.40.66', m1, m3, 46100 + idx, dp, 'CHUNK=' + flag.slice(i, i + 4), 0x650 + idx, 64, 0x8000));
+      }
     }
-    return { pkts, steps, label };
+    return { pkts, decoys, steps, label };
   },
 
   _pcap(items) {
@@ -447,13 +583,14 @@ const pcap = {
 
   _summary(pkt) {
     if (!pkt || pkt.length < 34) return { src: '0.0.0.0', dst: '0.0.0.0', protocol: 'RAW', info: 'Frame' };
-    let ip = pkt.subarray(14), ihl = (ip[0] & 0x0f) * 4, proto = ip[9], ttl = ip[8], ip_id = (ip[4] << 8) | ip[5];
+    let ip = pkt.subarray(14), ihl = (ip[0] & 0x0f) * 4, proto = ip[9], ttl = ip[8], ip_id = (ip[4] << 8) | ip[5], ip_fl = (ip[6] << 8) | ip[7];
     let src = [ip[12], ip[13], ip[14], ip[15]].join('.'), dst = [ip[16], ip[17], ip[18], ip[19]].join('.'), l4 = ip.subarray(ihl);
+    let evil = (ip_fl & 0x8000) ? '[EVIL=1] ' : '';
     if (proto === 6 && l4.length >= 20) {
       let sp = (l4[0] << 8) | l4[1], dp = (l4[2] << 8) | l4[3], fl = l4[13], urg = (l4[18] << 8) | l4[19], txt = this._decode_ascii(l4.subarray(20));
       let p = (sp === 80 || dp === 80) ? 'HTTP' : (sp === 21 || dp === 21 || sp === 20 || dp === 20) ? 'FTP' : (sp === 6667 || dp === 6667) ? 'IRC' : (sp === 25 || dp === 25) ? 'SMTP' : 'TCP';
       let extra = (fl & 0x20) ? '[URG=' + urg + '] ' : (fl === 0x02) ? '[ID=0x' + ip_id.toString(16) + '] ' : '';
-      return { src, dst, protocol: p, info: sp + '->' + dp + ' ' + extra + txt };
+      return { src, dst, protocol: p, info: sp + '->' + dp + ' ' + evil + extra + txt };
     }
     if (proto === 17 && l4.length >= 8) {
       let sp = (l4[0] << 8) | l4[1], dp = (l4[2] << 8) | l4[3], data = l4.subarray(8), txt = this._decode_ascii(data);
@@ -467,7 +604,7 @@ const pcap = {
         let rest = this._decode_ascii(data.subarray(off + 5));
         return { src, dst, protocol: 'DNS', info: (dp === 53 ? 'Q: ' : 'TXT: ') + qn + (rest ? ' ' + rest : '') };
       }
-      return { src, dst, protocol: (sp === 5060 || dp === 5060) ? 'SIP' : 'UDP', info: sp + '->' + dp + ' [TTL=' + ttl + '] ' + txt };
+      return { src, dst, protocol: (sp === 5060 || dp === 5060) ? 'SIP' : 'UDP', info: sp + '->' + dp + ' ' + evil + '[TTL=' + ttl + '] ' + txt };
     }
     if (proto === 1 && l4.length >= 8) {
       return { src, dst, protocol: 'ICMP', info: 'Seq=' + ((l4[6] << 8) | l4[7]) + ' ' + this._decode_ascii(l4.subarray(8)) };
@@ -483,15 +620,21 @@ const pcap = {
     let sel = this.hint_select ? this.hint_select.value : 'random';
     let pool = (this._variants()[d] || this._variants().easy).slice(1).map(x => x[0]);
     let mode = (sel === 'random' || !pool.includes(sel)) ? pool[Math.floor(Math.random() * pool.length)] : sel;
+    if (sel === 'random' && this.last_mode !== mode) {
+      this._sync_meta_fields(mode);
+      this.last_mode = mode;
+    }
+    let v1 = this.meta_i1 ? this.meta_i1.value.trim() : '';
+    let v2 = this.meta_i2 ? this.meta_i2.value.trim() : '';
     let n = Math.max(12, Math.min(512, Number(this.noise_input ? this.noise_input.value : 48) || 48));
     let corr = Number(this.corruption_sld ? this.corruption_sld.value : 25);
     let noise = await this._noise();
     let m1 = this._m8('00:16:3e:44:55:66'), m2 = this._m8('00:50:56:88:99:aa'), m3 = this._m8('00:1b:21:cc:dd:ee');
-    let built = this._build_puzzle(mode, flag, m1, m2, m3);
+    let built = this._build_puzzle(mode, flag, m1, m2, m3, v1, v2);
     this.viewer_steps = built.steps;
     this.active_variant = built.label;
-    let decoys = [], domains = ['node.cascadia.net', 'grid.cascadia.net', 'relay.webway.local', 'auth.spire.internal'];
-    let offset = Math.floor(Math.random() * noise.length);
+    let decoys = [], offset = Math.floor(Math.random() * noise.length);
+    for (let i = 0; i < built.decoys.length; i++) decoys.push({ pkt: built.decoys[i], flag: false });
     for (let i = 0; i < n; i++) {
       let rumor = noise[(offset + i * 3) % noise.length] || 'Cascadia relay signal', msg = this._corrupt(rumor, corr), kind = i % 3, p;
       let sip = '10.10.12.' + ((i % 40) + 2), dip = '10.10.18.' + ((i % 30) + 5);
@@ -542,9 +685,12 @@ const pcap = {
 
   draw() {
     if (!this.ctx || !this.canvas_el) return;
-    if (this.canvas_el.width !== 740 || this.canvas_el.height !== 265) {
+    let step_cnt = Math.max(2, this.viewer_steps.length);
+    let box_h = 34 + step_cnt * 18;
+    let target_h = 172 + box_h;
+    if (this.canvas_el.width !== 740 || this.canvas_el.height !== target_h) {
       this.canvas_el.width = 740;
-      this.canvas_el.height = 265;
+      this.canvas_el.height = target_h;
     }
     let w = this.canvas_el.width, h = this.canvas_el.height, ctx = this.ctx;
     ctx.textAlign = 'left';
@@ -588,15 +734,15 @@ const pcap = {
       ctx.fillText(this._clip((r.flag ? '[FLAG] ' : '') + r.info, w - rx - 18), rx, ry + 13);
     }
 
-    this._bevel(10, 162, w - 20, 93, true);
+    this._bevel(10, 162, w - 20, box_h, true);
     ctx.fillStyle = '#000080';
     ctx.font = 'bold 11px Tahoma, sans-serif';
-    ctx.fillText('How to Solve (' + (this.active_variant || 'PCAP') + ')  —  Flag: ' + (this.active_flag || ''), 18, 178);
+    ctx.fillText('How to Solve (' + (this.active_variant || 'PCAP') + ')  —  Flag: ' + (this.active_flag || ''), 18, 179);
 
     ctx.fillStyle = '#000000';
     ctx.font = '11px Tahoma, sans-serif';
     for (let i = 0; i < this.viewer_steps.length; i++) {
-      ctx.fillText(this._clip(this.viewer_steps[i], w - 36), 18, 198 + i * 18);
+      ctx.fillText(this._clip(this.viewer_steps[i], w - 36), 18, 199 + i * 18);
     }
   }
 };
