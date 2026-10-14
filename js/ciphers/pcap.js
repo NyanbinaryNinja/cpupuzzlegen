@@ -2,6 +2,7 @@ const pcap = {
   f: null,
   r: null,
   u: null,
+  win: null,
   use_image: false,
   input_fieldset: null,
   canvas_el: null,
@@ -9,41 +10,36 @@ const pcap = {
   b: null,
   buffer: null,
   cached_rumors: null,
+  all_items: [],
 
   init(canvas_el, ctx) {
-    let c = document.querySelector('#input_box').parentElement, p = document.querySelector('.options-window .window-body'), r = document.createElement('fieldset'), u = document.createElement('fieldset'), o = document.createElement('div'), d = document.createElement('select'), h = document.createElement('select'), i = document.createElement('input'), l = document.createElement('button'), n = document.createElement('span'), q = document.createElement('input'), y = document.createElement('input'), z = document.createElement('textarea'), s = document.createElement('input'), a = document.createElement('label'), v = document.createElement('label'), x = document.createElement('label'), e = document.createElement('label'), w = document.createElement('label'), g = document.createElement('label');
+    let c = document.querySelector('#input_box').parentElement;
+    let p = document.querySelector('.options-window .window-body');
+    let r = document.createElement('fieldset');
+    let u = document.createElement('fieldset');
+    let o = document.createElement('div');
+    let d = document.createElement('select');
+    let h = document.createElement('select');
+    let i = document.createElement('input');
+    let l = document.createElement('button');
+    let n = document.createElement('span');
+    let q = document.createElement('input');
+    let y = document.createElement('input');
+    let z = document.createElement('textarea');
+    let s = document.createElement('input');
+    let a = document.createElement('label');
+    let v = document.createElement('label');
+    let x = document.createElement('label');
+    let e = document.createElement('label');
+    let w = document.createElement('label');
+    let g = document.createElement('label');
     this.canvas_el = canvas_el;
     this.ctx = ctx;
     this.input_fieldset = c;
     this.r = r;
     this.u = u;
     this.f = i;
-    this.viewer_rows = [];
-    this.viewer_hover = -1;
-    this.viewer_pin = -1;
-    this.viewer_steps = [];
-    this.active_variant = '';
-    this.active_filter = '';
-    if (canvas_el) {
-      canvas_el.addEventListener('mousemove', (ev) => {
-        if (current_cipher !== this || !this.viewer_rows.length) return;
-        let rect = canvas_el.getBoundingClientRect(), mx = ((ev.clientX - rect.left) / rect.width) * canvas_el.width, my = ((ev.clientY - rect.top) / rect.height) * canvas_el.height;
-        let hit = this._viewer_hit(mx, my);
-        this.viewer_hover = hit;
-        canvas_el.style.cursor = hit >= 0 ? 'pointer' : 'default';
-      });
-      canvas_el.addEventListener('click', (ev) => {
-        if (current_cipher !== this || !this.viewer_rows.length) return;
-        let rect = canvas_el.getBoundingClientRect(), mx = ((ev.clientX - rect.left) / rect.width) * canvas_el.width, my = ((ev.clientY - rect.top) / rect.height) * canvas_el.height;
-        let hit = this._viewer_hit(mx, my);
-        if (hit >= 0) this.viewer_pin = hit;
-      });
-      canvas_el.addEventListener('mouseleave', () => {
-        if (current_cipher !== this) return;
-        this.viewer_hover = -1;
-        canvas_el.style.cursor = 'default';
-      });
-    }
+
     u.style.cssText = 'display:none;align-items:center;gap:8px;flex-wrap:wrap;';
     u.className = 'mb-5';
     i.type = 'file';
@@ -67,6 +63,7 @@ const pcap = {
     };
     u.append(l, n);
     c.parentElement.insertBefore(u, c.nextSibling);
+
     r.className = 'mb-5 w-100';
     r.style.cssText = 'display:none;width:100%;margin-top:8px;';
     d.className = 'mb-5 w-100';
@@ -119,6 +116,53 @@ const pcap = {
     o.append(a, d, v, h, x, y, g, z, w, s);
     r.appendChild(o);
     if (p) p.appendChild(r);
+
+    let win = document.createElement('div');
+    win.className = 'window';
+    win.style.cssText = 'display:none;width:100%;max-width:900px;margin:10px auto;';
+    win.innerHTML = `
+      <div class="title-bar">
+        <div class="title-bar-text">Packet Capture Analyzer - Wireshark 95</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="sunken-panel" style="height:175px;overflow-y:scroll;background:#fff;margin-bottom:8px;">
+          <table style="width:100%;border-collapse:collapse;font-size:11px;">
+            <thead style="position:sticky;top:0;background:#c0c0c0;border-bottom:1px solid #808080;">
+              <tr>
+                <th style="text-align:left;padding:2px 4px;width:38px;">No.</th>
+                <th style="text-align:left;padding:2px 4px;width:55px;">Time</th>
+                <th style="text-align:left;padding:2px 4px;width:100px;">Source</th>
+                <th style="text-align:left;padding:2px 4px;width:100px;">Destination</th>
+                <th style="text-align:left;padding:2px 4px;width:50px;">Proto</th>
+                <th style="text-align:left;padding:2px 4px;width:40px;">Len</th>
+                <th style="text-align:left;padding:2px 4px;">Info</th>
+              </tr>
+            </thead>
+            <tbody id="pcap_tbody"></tbody>
+          </table>
+        </div>
+        <fieldset class="mb-5">
+          <legend>Frame Inspector (Click packet row above)</legend>
+          <div id="pcap_detail" style="font-family:monospace;font-size:11px;line-height:1.4;white-space:pre-wrap;height:70px;overflow-y:auto;background:#fff;padding:4px;border:1px solid #808080;"></div>
+        </fieldset>
+        <fieldset class="mb-5">
+          <legend>Solution & Wireshark Filter</legend>
+          <div id="pcap_solve" style="font-size:11px;line-height:1.4;"></div>
+        </fieldset>
+        <div class="status-bar">
+          <p class="status-bar-field" id="pcap_sb_pkts">Packets: 0</p>
+          <p class="status-bar-field" id="pcap_sb_filter">Filter: -</p>
+          <p class="status-bar-field" id="pcap_sb_flag">Flag: -</p>
+        </div>
+      </div>
+    `;
+    canvas_el.parentElement.insertBefore(win, canvas_el);
+    this.win = win;
+
     this.noise_input = y;
     this.cascadia_cb = q;
     this.custom_noise = z;
@@ -173,10 +217,12 @@ const pcap = {
   show() {
     if (this.r) this.r.style.display = 'block';
     if (this.u) this.u.style.display = 'flex';
+    if (this.win) this.win.style.display = 'block';
   },
   hide() {
     if (this.r) this.r.style.display = 'none';
     if (this.u) this.u.style.display = 'none';
+    if (this.win) this.win.style.display = 'none';
   },
   set_image_mode(enabled) {
     this.use_image = enabled;
@@ -250,12 +296,12 @@ const pcap = {
     let n = [];
     if (this.cascadia_cb && this.cascadia_cb.checked) {
       if (!this.cached_rumors || !this.cached_rumors.length) {
-        let base = "CPU - Weaver's Webway - news-rumors-cascadia-ic [982709436881723442]";
+        let base = "json/CPU - Weaver's Webway - news-rumors-cascadia-ic [982709436881723442]";
         let urls = [
-          'json/' + encodeURIComponent(base + '.json'),
-          'json/' + encodeURI(base + '.json'),
-          'json/' + encodeURIComponent(base),
-          'json/' + encodeURI(base)
+          encodeURI(base + '.json'),
+          encodeURI(base),
+          base + '.json',
+          base
         ];
         for (let i = 0; i < urls.length; i++) {
           try {
@@ -577,7 +623,6 @@ const pcap = {
   async gen(t) {
     let raw = (this.use_image && this.file_text) ? this.file_text : this._str(t || '');
     let flag = raw.trim() || 'FLAG{packet_sniffing_forensics}';
-    this.active_flag = flag;
     let d = this.difficulty_select ? this.difficulty_select.value : 'easy';
     let sel = this.hint_select ? this.hint_select.value : 'random';
     let pool = (this._variants()[d] || this._variants().easy).slice(1).map(x => x[0]);
@@ -587,9 +632,6 @@ const pcap = {
     let noise = await this._noise();
     let m1 = this._m8('00:16:3e:44:55:66'), m2 = this._m8('00:50:56:88:99:aa'), m3 = this._m8('00:1b:21:cc:dd:ee');
     let built = this._build_puzzle(mode, flag, m1, m2, m3);
-    this.viewer_steps = built.steps;
-    this.active_variant = built.label;
-    this.active_filter = built.filter;
     let decoys = [], domains = ['node.cascadia.net', 'grid.cascadia.net', 'relay.webway.local', 'auth.spire.internal'];
     let offset = Math.floor(Math.random() * noise.length);
     for (let i = 0; i < n; i++) {
@@ -610,17 +652,73 @@ const pcap = {
       items.push(decoys[i]);
     }
     while (f_idx < built.pkts.length) items.push({ pkt: built.pkts[f_idx++], flag: true });
-    let rows = [], flag_items = [], decoy_items = [];
+
+    let tbody = document.getElementById('pcap_tbody');
+    let detail_el = document.getElementById('pcap_detail');
+    let solve_el = document.getElementById('pcap_solve');
+    if (tbody) tbody.innerHTML = '';
+    let rows_data = [];
     for (let i = 0; i < items.length; i++) {
       let s = this._summary(items[i].pkt);
-      let row = { no: i + 1, time: (i * 0.037).toFixed(3), src: s.src, dst: s.dst, protocol: s.protocol, len: items[i].pkt.length, info: s.info, hdr: s.hdr, payload: s.payload, flag: items[i].flag, flag_value: flag };
-      if (row.flag) flag_items.push(row);
-      else decoy_items.push(row);
+      let r = { no: i + 1, time: (i * 0.037).toFixed(3), src: s.src, dst: s.dst, protocol: s.protocol, len: items[i].pkt.length, info: s.info, hdr: s.hdr, payload: s.payload, flag: items[i].flag };
+      rows_data.push(r);
+      if (tbody) {
+        let tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        if (r.flag) {
+          tr.style.fontWeight = 'bold';
+          tr.style.background = '#ffffe0';
+        }
+        tr.innerHTML = `
+          <td style="padding:2px 4px;">${r.no}</td>
+          <td style="padding:2px 4px;">${r.time}</td>
+          <td style="padding:2px 4px;">${r.src}</td>
+          <td style="padding:2px 4px;">${r.dst}</td>
+          <td style="padding:2px 4px;">${r.protocol}</td>
+          <td style="padding:2px 4px;">${r.len}</td>
+          <td style="padding:2px 4px;">${r.flag ? '[FLAG] ' : ''}${r.info}</td>
+        `;
+        tr.onclick = () => {
+          let prev = tbody.querySelector('tr[data-selected="1"]');
+          if (prev) {
+            prev.removeAttribute('data-selected');
+            prev.style.background = prev.getAttribute('data-flag') === '1' ? '#ffffe0' : '';
+            prev.style.color = '';
+          }
+          tr.setAttribute('data-selected', '1');
+          tr.style.background = '#000080';
+          tr.style.color = '#ffffff';
+          if (detail_el) {
+            let hex_preview = this._hex(r.payload.slice(0, 48)).replace(/(..)/g, '$1 ').trim();
+            detail_el.textContent = `Frame #${r.no} (${r.flag ? 'FLAG' : 'DECOY'}) | ${r.src} -> ${r.dst} [${r.protocol}]\n${r.hdr}\nPayload: ${r.payload}\nHex:     ${hex_preview}`;
+          }
+        };
+        if (r.flag) tr.setAttribute('data-flag', '1');
+        tbody.appendChild(tr);
+      }
     }
-    let keep_flags = flag_items.slice(0, 6), keep_decoys = decoy_items.slice(0, 11 - keep_flags.length);
-    rows = keep_flags.concat(keep_decoys).sort((a, b) => a.no - b.no);
-    this.viewer_rows = rows;
-    this.viewer_pin = rows.findIndex(r => r.flag);
+
+    let default_hit = rows_data.find(x => x.flag) || rows_data[0];
+    if (detail_el && default_hit) {
+      let hex_preview = this._hex(default_hit.payload.slice(0, 48)).replace(/(..)/g, '$1 ').trim();
+      detail_el.textContent = `Frame #${default_hit.no} (${default_hit.flag ? 'FLAG' : 'DECOY'}) | ${default_hit.src} -> ${default_hit.dst} [${default_hit.protocol}]\n${default_hit.hdr}\nPayload: ${default_hit.payload}\nHex:     ${hex_preview}`;
+    }
+    if (solve_el) {
+      solve_el.innerHTML = `
+        <div style="font-weight:bold;margin-bottom:4px;">Puzzle: ${built.label} &nbsp;|&nbsp; Filter: <code style="background:#e0e0e0;padding:1px 4px;">${built.filter}</code></div>
+        <div style="color:#000080;margin-bottom:4px;">Flag: <strong>${flag}</strong></div>
+        <ol style="margin:4px 0 0 16px;padding:0;">${built.steps.map(st => `<li>${st.replace(/^\d+\.\s*/, '')}</li>`).join('')}</ol>
+      `;
+    }
+
+    let sb_pkts = document.getElementById('pcap_sb_pkts');
+    let sb_flt = document.getElementById('pcap_sb_filter');
+    let sb_flg = document.getElementById('pcap_sb_flag');
+    if (sb_pkts) sb_pkts.textContent = 'Packets: ' + items.length;
+    if (sb_flt) sb_flt.textContent = 'Filter: ' + built.filter;
+    if (sb_flg) sb_flg.textContent = 'Flag: ' + flag;
+
+    this.all_items = items;
     this.buffer = this._pcap(items);
     this.b = new Blob([this.buffer], { type: 'application/vnd.tcpdump.pcap' });
     return this.buffer;
@@ -637,106 +735,31 @@ const pcap = {
     setTimeout(() => URL.revokeObjectURL(u), 0);
   },
 
-  _viewer_hit(x, y) {
-    if (!this.viewer_rows || !this.viewer_rows.length || !this.canvas_el) return -1;
-    let top = 46, rh = 20, max_r = Math.min(this.viewer_rows.length, 11);
-    let hit = Math.floor((y - top) / rh);
-    if (y < top || hit < 0 || hit >= max_r || x < 8 || x > this.canvas_el.width - 8) return -1;
-    return hit;
-  },
-
-  _clip(txt, max_w) {
-    let s = this._str(txt);
-    if (this.ctx.measureText(s).width <= max_w) return s;
-    while (s.length > 0 && this.ctx.measureText(s + '...').width > max_w) s = s.slice(0, -1);
-    return s + '...';
-  },
-
   draw() {
     if (!this.ctx || !this.canvas_el) return;
-    if (this.canvas_el.width !== 920 || this.canvas_el.height !== 520) {
-      this.canvas_el.width = 920;
-      this.canvas_el.height = 520;
+    if (this.canvas_el.width !== 900 || this.canvas_el.height !== 90) {
+      this.canvas_el.width = 900;
+      this.canvas_el.height = 90;
     }
-    let w = this.canvas_el.width, h = this.canvas_el.height, rows = (this.viewer_rows || []).slice(0, 11);
-    let active_idx = this.viewer_hover >= 0 ? this.viewer_hover : (this.viewer_pin >= 0 ? this.viewer_pin : 0);
-    let active = rows[active_idx] || rows[0] || null;
-    this.ctx.textAlign = 'left';
-    this.ctx.textBaseline = 'alphabetic';
-    this.ctx.lineWidth = 1;
-    this.ctx.fillStyle = '#061014';
-    this.ctx.fillRect(0, 0, w, h);
-    this.ctx.fillStyle = '#102830';
-    this.ctx.fillRect(8, 6, w - 16, 22);
-    this.ctx.strokeStyle = '#285566';
-    this.ctx.strokeRect(8, 6, w - 16, 22);
-    this.ctx.fillStyle = '#7be3f6';
-    this.ctx.font = 'bold 11px monospace';
-    let casc = (this.cascadia_cb && this.cascadia_cb.checked) ? 'ON (' + (this.corruption_sld ? this.corruption_sld.value : 0) + '% corrupt)' : 'OFF';
-    this.ctx.fillText('PCAP ANALYZER  |  Puzzle: ' + (this.active_variant || 'Ready') + '  |  Cascadia Rumors: ' + casc + '  |  Click/Hover any packet to inspect', 14, 21);
-    let cols = [42, 54, 105, 105, 52, 44], labels = ['No.', 'Time', 'Source', 'Destination', 'Proto', 'Len', 'Info (Gold = Flag Packet, Cyan = Decoy / Cascadia Rumor)'], cx = 14;
-    this.ctx.fillStyle = '#a9dce8';
-    this.ctx.font = 'bold 11px monospace';
-    for (let i = 0; i < labels.length; i++) {
-      this.ctx.fillText(labels[i], cx, 41);
-      cx += cols[i] || 0;
+    let w = this.canvas_el.width, h = this.canvas_el.height, ctx = this.ctx;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#003300';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+    for (let y = 0; y < h; y += 18) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+    if (!this.all_items || !this.all_items.length) return;
+    let step = w / this.all_items.length;
+    for (let i = 0; i < this.all_items.length; i++) {
+      let it = this.all_items[i], x = i * step, len = it.pkt.length;
+      let bar_h = Math.min(h - 12, Math.max(6, (len / 320) * (h - 20)));
+      ctx.fillStyle = it.flag ? '#ffff00' : '#00ff66';
+      ctx.fillRect(x, h - bar_h, Math.max(2, step - 1), bar_h);
     }
-    let top = 46, rh = 20;
-    for (let i = 0; i < rows.length; i++) {
-      let r = rows[i], ry = top + i * rh, sel = !!r.flag, is_act = (i === active_idx);
-      this.ctx.fillStyle = sel ? 'rgba(255, 204, 0, 0.22)' : (i % 2 === 0 ? 'rgba(16, 34, 46, 0.92)' : 'rgba(10, 22, 30, 0.92)');
-      this.ctx.fillRect(8, ry, w - 16, rh - 2);
-      this.ctx.strokeStyle = is_act ? '#00ffcc' : (sel ? '#f4c542' : '#1d3842');
-      this.ctx.lineWidth = is_act ? 1.5 : 1;
-      this.ctx.strokeRect(8, ry, w - 16, rh - 2);
-      this.ctx.lineWidth = 1;
-      this.ctx.fillStyle = sel ? '#ffe47a' : '#d8f0f8';
-      this.ctx.font = sel ? 'bold 11px monospace' : '11px monospace';
-      let rx = 14, vals = [String(r.no), r.time, r.src, r.dst, r.protocol, String(r.len)];
-      for (let j = 0; j < vals.length; j++) {
-        this.ctx.fillText(vals[j], rx, ry + 13);
-        rx += cols[j];
-      }
-      let prefix = sel ? '[FLAG] ' : '';
-      this.ctx.fillText(this._clip(prefix + (r.info || ''), w - rx - 16), rx, ry + 13);
-    }
-    let iy = 272, ih = 96;
-    this.ctx.fillStyle = '#0a1b22';
-    this.ctx.fillRect(8, iy, w - 16, ih);
-    this.ctx.strokeStyle = '#2d6275';
-    this.ctx.strokeRect(8, iy, w - 16, ih);
-    this.ctx.fillStyle = '#00ffcc';
-    this.ctx.font = 'bold 11px monospace';
-    if (active) {
-      let tag = active.flag ? 'FLAG PACKET' : 'DECOY / RUMOR PACKET';
-      this.ctx.fillText('INSPECTING FRAME #' + active.no + ' (' + tag + ')  —  ' + active.src + ' -> ' + active.dst + ' [' + active.protocol + ']', 16, iy + 18);
-      this.ctx.fillStyle = '#ffe070';
-      this.ctx.font = '11px monospace';
-      this.ctx.fillText('Headers: ' + this._clip(active.hdr || '', w - 95), 16, iy + 38);
-      this.ctx.fillStyle = '#dfeef7';
-      let pay = active.payload || active.info || '';
-      this.ctx.fillText('Payload: ' + this._clip(pay, w - 95), 16, iy + 58);
-      let hex_preview = this._hex(pay.slice(0, 36)).replace(/(..)/g, '$1 ').trim();
-      this.ctx.fillStyle = '#8ab8c7';
-      this.ctx.fillText('Hex:     ' + this._clip(hex_preview, w - 95), 16, iy + 78);
-    }
-    let sy = 376, sh = 136;
-    this.ctx.fillStyle = 'rgba(18, 28, 16, 0.96)';
-    this.ctx.fillRect(8, sy, w - 16, sh);
-    this.ctx.strokeStyle = '#f4c542';
-    this.ctx.lineWidth = 1.5;
-    this.ctx.strokeRect(8, sy, w - 16, sh);
-    this.ctx.lineWidth = 1;
-    this.ctx.fillStyle = '#ffe47a';
-    this.ctx.font = 'bold 12px monospace';
-    this.ctx.fillText('HOW TO SOLVE THIS PCAP  |  Embedded Flag: ' + (this.active_flag || 'FLAG{...}'), 16, sy + 20);
-    this.ctx.fillStyle = '#7be3f6';
-    this.ctx.font = 'bold 11px monospace';
-    this.ctx.fillText('Puzzle Type: ' + (this.active_variant || '-') + '   |   Wireshark Display Filter: ' + (this.active_filter || 'any'), 16, sy + 40);
-    this.ctx.fillStyle = '#ffffff';
-    this.ctx.font = '11px monospace';
-    for (let i = 0; i < this.viewer_steps.length; i++) {
-      this.ctx.fillText(this._clip(this.viewer_steps[i], w - 36), 16, sy + 64 + i * 20);
-    }
+    ctx.fillStyle = '#00ff66';
+    ctx.font = '10px monospace';
+    ctx.fillText('NETWORK TRAFFIC MONITOR (Yellow = Flag Frames, Green = Cascadia Rumors)', 8, 14);
   }
 };
