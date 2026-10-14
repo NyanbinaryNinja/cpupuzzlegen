@@ -26,13 +26,13 @@ const crypto_list = [
   ['decimal', 'ASCII Decimal', [['Separator:', 'text', ' ']]],
   ['url', 'URL Percent-Encode', []],
   ['xor', 'Repeating-Key XOR (Hex)', [['Key:', 'text', 'KEY']]],
-  ['aes', 'AES-256 (CryptoJS)', [['Passphrase:', 'text', 'cascadia']]],
-  ['des', 'TripleDES (CryptoJS)', [['Passphrase:', 'text', 'cascadia']]],
-  ['rc4', 'RC4 Stream (CryptoJS)', [['Passphrase:', 'text', 'cascadia']]],
-  ['rabbit', 'Rabbit Stream (CryptoJS)', [['Passphrase:', 'text', 'cascadia']]],
-  ['md5', 'MD5 Hash (CryptoJS)', []],
-  ['sha1', 'SHA-1 Hash (CryptoJS)', []],
-  ['sha256', 'SHA-256 Hash (CryptoJS)', []]
+  ['aes', 'AES-256', [['Passphrase:', 'text', 'cascadia']]],
+  ['des', 'TripleDES', [['Passphrase:', 'text', 'cascadia']]],
+  ['rc4', 'RC4 Stream', [['Passphrase:', 'text', 'cascadia']]],
+  ['rabbit', 'Rabbit Stream', [['Passphrase:', 'text', 'cascadia']]],
+  ['md5', 'MD5 Hash', []],
+  ['sha1', 'SHA-1 Hash', []],
+  ['sha256', 'SHA-256 Hash', []]
 ];
 
 function init_crypto_ui() {
@@ -88,14 +88,16 @@ function toggle_prefix(enabled) {
   if (window.generate_grid) window.generate_grid();
 }
 
-function apply_leet(str) {
-  let leet_map = { a: '4', e: '3', i: '1', o: '0', t: '7', s: '5', g: '9' }, out = '';
-  for (let char of str) {
-    let variants = [char.toUpperCase(), char.toLowerCase()], lower = char.toLowerCase();
+function generate_flag(prefix, flag) {
+  let leet_map = { 'a': '4', 'e': '3', 'i': '1', 'o': '0', 't': '7', 's': '5', 'g': '9' };
+  let leet_flag = '';
+  for (let char of flag) {
+    let variants = [char.toUpperCase(), char.toLowerCase()];
+    let lower = char.toLowerCase();
     if (leet_map[lower]) variants.push(leet_map[lower]);
-    out += variants[Math.floor(Math.random() * variants.length)];
+    leet_flag += variants[Math.floor(Math.random() * variants.length)];
   }
-  return out;
+  return prefix ? (prefix + '{' + leet_flag + '}') : leet_flag;
 }
 
 function _alpha_shift(s, fn) {
@@ -278,7 +280,7 @@ function get_flag_input() {
   let mode = csel ? csel.value : 'none';
   let o0 = document.getElementById('c_opt_0'), o1 = document.getElementById('c_opt_1');
   let p0 = o0 ? o0.value : undefined, p1 = o1 ? o1.value : undefined;
-  let body = (lcb && lcb.checked) ? apply_leet(raw) : raw;
+  let body = (lcb && lcb.checked) ? generate_flag('', raw) : raw;
   if (ecb && ecb.checked) {
     let full = use_pref ? (pref + '{' + body + '}') : body;
     return encode_cipher(full, mode, p0, p1);
