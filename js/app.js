@@ -1,6 +1,7 @@
 const canvas_el = document.getElementById('canvas_el');
 const ctx = canvas_el.getContext('2d');
 const input_box = document.getElementById('input_box');
+const prefix_box = document.getElementById('prefix_box');
 const rec_btn = document.getElementById('rec_btn');
 const generate_btn = document.getElementById('generate_btn');
 const split_cb = document.getElementById('split_cb');
@@ -25,14 +26,16 @@ const ciphers = {
 let current_cipher = null;
 let anim_frame = null;
 
+if (typeof init_crypto_ui === 'function') init_crypto_ui();
 spectrogram.init(canvas_el, ctx);
 pcap.init(canvas_el, ctx);
 
 window.generate_grid = async function() {
   let c_type = document.getElementById('cipher_select').value;
-  let input_val = input_box.value;
+  let input_val = typeof get_flag_input === 'function' ? get_flag_input() : input_box.value;
   document.getElementById('opt_poly').style.display = c_type === 'poly' ? 'block' : 'none';
   document.getElementById('opt_radar').style.display = c_type === 'radar' ? 'block' : 'none';
+  document.getElementById('opt_circuit').style.display = c_type === 'circuit' ? 'block' : 'none';
   document.getElementById('opt_maze').style.display = c_type === 'maze' ? 'block' : 'none';
   spectrogram_options.style.display = c_type === 'spectrogram' ? 'block' : 'none';
   split_fieldset.style.display = c_type === 'spectrogram' || c_type === 'pcap' ? 'none' : 'block';

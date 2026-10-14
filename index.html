@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
 <script src="js/general/input_filter.js"></script>
 <script src="js/general/theme_manager.js"></script>
 <script src="js/general/gif_generator.js"></script>
@@ -29,7 +30,7 @@
 <body>
 <div class="window flag-window">
   <div class="title-bar">
-    <div class="title-bar-text">Flag Generator</div>
+    <div class="title-bar-text">Crypto Encoder</div>
     <div class="title-bar-controls">
       <button aria-label="Minimize"></button>
       <button aria-label="Maximize"></button>
@@ -37,11 +38,18 @@
     </div>
   </div>
   <div class="window-body">
-    <fieldset class="mb-5"><label for="prefix_input">Prefix:</label><input type="text" id="prefix_input" value=""></fieldset>
-    <fieldset class="mb-5"><label for="flag_input">Flag:</label><input type="text" id="flag_input" value=""></fieldset>
-    <fieldset class="mb-5"><button onclick="generate_custom_flag()">Generate Flag</button></fieldset>
-    <fieldset class="mb-5"><label for="flag_output">Output:</label><input type="text" id="flag_output" readonly></fieldset>
-    <fieldset><input type="checkbox" id="add_to_cipher_cb"><label for="add_to_cipher_cb"> Add to cipher input</label></fieldset>
+    <fieldset class="mb-5">
+      <select id="crypto_select" class="w-100" onchange="update_crypto_ui()"></select>
+    </fieldset>
+    <fieldset id="crypto_opts" class="mb-5" style="display:none;flex-direction:column;gap:6px;"></fieldset>
+    <fieldset class="mb-5">
+      <input type="checkbox" id="leet_cb" onchange="generate_grid()">
+      <label for="leet_cb"> Leet / Random Case</label>
+    </fieldset>
+    <fieldset>
+      <input type="checkbox" id="enc_full_cb" onchange="generate_grid()">
+      <label for="enc_full_cb"> Encode Prefix{} Wrapper</label>
+    </fieldset>
   </div>
 </div>
 <div id="controls" class="window controls-window">
@@ -67,7 +75,8 @@
       </select>
     </fieldset>
     <fieldset id="input_fieldset" class="control-fieldset flex-center gap-15">
-      <input id="input_box" value="" placeholder="Enter text here..." class="box-border" style="flex:1;min-width:0">
+      <input id="prefix_box" value="CPU" placeholder="Prefix" class="box-border" style="width:64px;min-width:0;">
+      <input id="input_box" value="" placeholder="Enter flag text..." class="box-border" style="flex:1;min-width:0;">
     </fieldset>
     <fieldset class="control-fieldset flex-center gap-15">
       <button id="generate_btn" onclick="generate_grid()">Generate Grid</button>
@@ -96,6 +105,8 @@
         <option value="6">Colour Picker</option>
       </select>
       <input type="color" id="c_pick" value="#00ff44" class="color-picker" style="display:none;">
+      <input type="checkbox" id="prefix_cb" checked onchange="toggle_prefix(this.checked)" style="margin-left:6px;">
+      <label for="prefix_cb">Prefix</label>
     </fieldset>
     <div id="opt_poly" style="display:none;"><fieldset><input type="checkbox" id="poly_num_cb" onchange="generate_grid()" checked><label for="poly_num_cb"> Show Numbers</label></fieldset></div>
     <div id="opt_radar" style="display:none;"><fieldset><input type="checkbox" id="radar_clock_cb" onchange="generate_grid()" checked><label for="radar_clock_cb"> Show Clock Guide</label></fieldset></div>
