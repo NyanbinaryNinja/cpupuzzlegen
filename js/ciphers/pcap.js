@@ -176,10 +176,10 @@ const pcap = {
     if (!this.meta_l1) return;
     let cfg = this._meta_cfg(mode);
     this.meta_l1.textContent = cfg[0];
-    this.meta_i1.placeholder = cfg[1] || 'default';
+    this.meta_i1.placeholder = cfg[1] || '';
     this.meta_i1.value = cfg[1];
     this.meta_l2.textContent = cfg[2];
-    this.meta_i2.placeholder = cfg[3] || 'default';
+    this.meta_i2.placeholder = cfg[3] || '';
     this.meta_i2.value = cfg[3];
   },
 
