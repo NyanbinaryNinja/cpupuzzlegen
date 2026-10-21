@@ -101,9 +101,11 @@
         <option value="6">Colour Picker</option>
       </select>
       <input type="color" id="c_pick" value="#00ff44" class="color-picker" style="display:none;">
-      <input type="checkbox" id="prefix_cb" checked onchange="toggle_prefix(this.checked)" style="margin-left:6px;">
+    </fieldset>
+    <fieldset class="options-toggle-fieldset">
+      <input type="checkbox" id="prefix_cb" checked onchange="toggle_prefix(this.checked)">
       <label for="prefix_cb">Prefix</label>
-      <input type="checkbox" id="leet_cb" checked onchange="generate_grid()" style="margin-left:6px;">
+      <input type="checkbox" id="leet_cb" checked onchange="generate_grid()">
       <label for="leet_cb">Leetify</label>
     </fieldset>
     <div id="opt_poly" style="display:none;"><fieldset><input type="checkbox" id="poly_num_cb" onchange="generate_grid()" checked><label for="poly_num_cb"> Show Numbers</label></fieldset></div>

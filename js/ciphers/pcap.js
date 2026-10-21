@@ -153,21 +153,21 @@ const pcap = {
 
   _meta_cfg(mode) {
     let map = {
-      'http-creds': ['User:', 'admin', 'Host:', 'auth.cascadia.net'],
-      'ftp-transfer': ['FTP User:', 'netrunner', 'File:', 'clearance.txt'],
-      'irc-chat': ['Nick:', 'kestrel', 'Channel:', '#weavers-ops'],
-      'smtp-mail': ['From:', 'director@cascadia.net', 'To:', 'cell-09@cascadia.net'],
-      'dns-txt': ['Domain:', '_token.cascadia.net', 'Resolver:', '10.10.20.250'],
-      'http-brute': ['Valid User:', 'operative_7', 'Host:', 'portal.cascadia.net'],
-      'tcp-split': ['Service Port:', '8443', 'Server IP:', '10.10.20.88'],
-      'icmp-order': ['Sender IP:', '10.10.20.77', 'Ping Tag:', 'SYNC'],
-      'dns-sub': ['Base Domain:', 'exfil.cascadia.net', 'Client IP:', '10.10.20.7'],
-      'sip-call': ['Caller:', 'operator', 'SIP Domain:', 'voip.cascadia.net'],
-      'ip-id': ['Sender IP:', '10.10.30.9', 'Target Port:', '443'],
-      'ip-ttl': ['Sender IP:', '10.10.30.17', 'UDP Port:', '33434'],
-      'tcp-urg': ['Sender IP:', '10.10.30.25', 'TCP Port:', '9001'],
-      'port-knock': ['Base Port:', '10000', 'Knock Port:', '1337'],
-      'evil-bit': ['Sender IP:', '10.10.30.66', 'UDP Port:', '6666']
+      'http-creds': ['User:', '', 'Host:', ''],
+      'ftp-transfer': ['FTP User:', '', 'File:', ''],
+      'irc-chat': ['Nick:', '', 'Channel:', ''],
+      'smtp-mail': ['From:', '', 'To:', ''],
+      'dns-txt': ['Domain:', '', 'Resolver:', ''],
+      'http-brute': ['Valid User:', '', 'Host:', ''],
+      'tcp-split': ['Service Port:', '', 'Server IP:', ''],
+      'icmp-order': ['Sender IP:', '', 'Ping Tag:', ''],
+      'dns-sub': ['Base Domain:', '', 'Client IP:', ''],
+      'sip-call': ['Caller:', '', 'SIP Domain:', ''],
+      'ip-id': ['Sender IP:', '', 'Target Port:', ''],
+      'ip-ttl': ['Sender IP:', '', 'UDP Port:', ''],
+      'tcp-urg': ['Sender IP:', '', 'TCP Port:', ''],
+      'port-knock': ['Base Port:', '', 'Knock Port:', ''],
+      'evil-bit': ['Sender IP:', '', 'UDP Port:', '']
     };
     return map[mode] || ['User/IP:', '', 'Target/Host:', ''];
   },
