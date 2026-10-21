@@ -17,8 +17,9 @@ class circuit_cipher {
   }
   generate(input_val) {
     let filter_data = input_filter.get_filtered_chars(input_val, 36);
-    let target_size = Math.max(12, filter_data.unique_chars.length);
-    let random_leftovers = filter_data.leftovers.sort(() => Math.random() - 0.5).slice(0, target_size - filter_data.unique_chars.length);
+    let extra_chars = filter_data.mixed_case ? 4 : 0;
+    let target_size = Math.min(36, Math.max(12, filter_data.unique_chars.length + extra_chars));
+    let random_leftovers = input_filter.get_random_leftovers(filter_data, target_size - filter_data.unique_chars.length);
     this.char_pool = [...filter_data.unique_chars, ...random_leftovers].sort(() => Math.random() - 0.5);
     let all_pairs = [];
     for (let i = 0; i < 6; i++) {

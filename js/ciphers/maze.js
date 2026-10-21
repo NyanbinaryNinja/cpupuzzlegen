@@ -33,8 +33,14 @@ class maze_cipher {
       }
       if (!failed) success = true;
     }
-    let pool = [...filter_data.unique_chars, ...filter_data.leftovers];
-    for (let i = 0; i < 64; i++) if (!this.grid[i]) this.grid[i] = pool[Math.floor(Math.random() * pool.length)];
+    let empty_cells = [];
+    for (let i = 0; i < 64; i++) if (!this.grid[i]) empty_cells.push(i);
+    let decoys = input_filter.get_random_leftovers(filter_data, Math.min(4, empty_cells.length));
+    for (let i = 0; i < decoys.length; i++) this.grid[empty_cells[i]] = decoys[i];
+    let pool = [...filter_data.unique_chars, ...filter_data.leftovers, ...filter_data.lowercase_leftovers];
+    for (let i = decoys.length; i < empty_cells.length; i++) {
+      this.grid[empty_cells[i]] = pool[Math.floor(Math.random() * pool.length)];
+    }
     this.split_y = Math.max(100, 60 + this.path.length * 30 + 20);
     this.canvas_el.width = 600;
     this.canvas_el.height = this.split_y + 440;

@@ -10,8 +10,9 @@ class radar_cipher {
 
   generate(input_val) {
     let filter_data = input_filter.get_filtered_chars(input_val);
-    let pool_size = Math.max(12, filter_data.unique_chars.length);
-    let random_leftovers = filter_data.leftovers.sort(() => Math.random() - 0.5).slice(0, pool_size - filter_data.unique_chars.length);
+    let extra_chars = filter_data.mixed_case ? 4 : 0;
+    let pool_size = Math.max(12, filter_data.unique_chars.length + extra_chars);
+    let random_leftovers = input_filter.get_random_leftovers(filter_data, pool_size - filter_data.unique_chars.length);
     this.char_pool = [...filter_data.unique_chars, ...random_leftovers].sort(() => Math.random() - 0.5);
     this.cipher_coords = filter_data.clean_val.split('').map(char => this.char_pool.indexOf(char));
     let cols = 8;

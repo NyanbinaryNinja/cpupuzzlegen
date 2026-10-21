@@ -10,9 +10,10 @@ class polybius_cipher {
 
   generate(input_val) {
     let filter_data = input_filter.get_filtered_chars(input_val);
-    this.grid_size = Math.max(5, Math.ceil(Math.sqrt(filter_data.unique_chars.length || 1)));
+    let extra_chars = filter_data.mixed_case ? 4 : 0;
+    this.grid_size = Math.max(5, Math.ceil(Math.sqrt(filter_data.unique_chars.length + extra_chars || 1)));
     let pool_size = this.grid_size * this.grid_size;
-    let random_leftovers = filter_data.leftovers.sort(() => Math.random() - 0.5).slice(0, pool_size - filter_data.unique_chars.length);
+    let random_leftovers = input_filter.get_random_leftovers(filter_data, pool_size - filter_data.unique_chars.length);
     this.char_pool = [...filter_data.unique_chars, ...random_leftovers].sort(() => Math.random() - 0.5);
     this.cipher_coords = filter_data.clean_val.split('').map(char => {
       let idx = this.char_pool.indexOf(char);

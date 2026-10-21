@@ -9,7 +9,7 @@ class pigpen_cipher {
 
   generate(input_val) {
     let filter_data = input_filter.get_filtered_chars(input_val, 26);
-    let random_leftovers = filter_data.leftovers.sort(() => Math.random() - 0.5).slice(0, 26 - filter_data.unique_chars.length);
+    let random_leftovers = input_filter.get_random_leftovers(filter_data, 26 - filter_data.unique_chars.length);
     this.char_pool = [...filter_data.unique_chars, ...random_leftovers].sort(() => Math.random() - 0.5);
     this.cipher_coords = filter_data.clean_val.split('').filter(c => this.char_pool.includes(c)).map(char => this.char_pool.indexOf(char));
     let rows = Math.max(1, Math.ceil(this.cipher_coords.length / 8));
